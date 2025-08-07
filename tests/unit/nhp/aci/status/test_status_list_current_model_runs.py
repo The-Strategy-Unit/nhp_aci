@@ -12,7 +12,7 @@ def test_get_current_model_runs(mocker, config):
     )
 
     m_gcgis = mocker.patch(
-        "nhp.aci.status.list_current_model_runs.get_container_group_instance_state",
+        "nhp.aci.status.list_current_model_runs.get_container_group_current_state",
         return_value="state",
     )
 

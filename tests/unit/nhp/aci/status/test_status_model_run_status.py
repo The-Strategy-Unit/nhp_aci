@@ -75,7 +75,7 @@ def test__get_aci_status(mocker, config):
     # arrange
     m_cimc = mocker.patch("nhp.aci.status.model_run_status.ContainerInstanceManagementClient")
     m_gcgis = mocker.patch(
-        "nhp.aci.status.model_run_status.get_container_group_instance_state", return_value="state"
+        "nhp.aci.status.model_run_status.get_container_group_current_state", return_value="state"
     )
 
     # act

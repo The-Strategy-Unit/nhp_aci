@@ -7,7 +7,7 @@ from azure.mgmt.containerinstance import ContainerInstanceManagementClient
 from azure.storage.blob import BlobServiceClient
 
 from nhp.aci.config import Config
-from nhp.aci.status.helpers import get_container_group_instance_state
+from nhp.aci.status.helpers import get_container_group_current_state
 
 
 def _get_queue_metadata(
@@ -47,7 +47,7 @@ def _get_aci_status(
     client = ContainerInstanceManagementClient(credential, config.subscription_id)
     resource_group = config.resource_group
 
-    return get_container_group_instance_state(container_group_name, client, resource_group)
+    return get_container_group_current_state(container_group_name, client, resource_group)
 
 
 def get_model_run_status(

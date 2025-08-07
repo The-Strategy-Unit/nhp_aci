@@ -5,7 +5,7 @@ from azure.mgmt.containerinstance import ContainerInstanceManagementClient
 from nhp.aci.config import Config
 
 
-def get_container_group_instance_state(
+def get_container_group_current_state(
     container_group_name: str,
     client: ContainerInstanceManagementClient,
     resource_group: str,
@@ -30,11 +30,15 @@ def get_container_group_instance_state(
     if instance_view is None:
         return {}
 
+    current_state = instance_view.current_state
+    if current_state is None:
+        return {}
+
     if (
         config.auto_delete_completed_containers
-        and instance_view.state == "Terminated"
-        and instance_view.detail_status == "Completed"
+        and current_state.state == "Terminated"
+        and current_state.detail_status == "Completed"
     ):
         client.container_groups.begin_delete(resource_group, container_group_name)
 
-    return instance_view.as_dict()
+    return current_state.as_dict()
