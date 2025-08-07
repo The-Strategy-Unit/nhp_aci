@@ -201,3 +201,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# version file (auto generated)
+src/nhp/_version.py
