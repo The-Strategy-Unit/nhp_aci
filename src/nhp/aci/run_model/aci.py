@@ -82,14 +82,17 @@ def create_and_start_container(
         user_assigned_identities={config.user_assigned_identity: {}},  # type: ignore
     )
 
-    diagnostics = ContainerGroupDiagnostics(
-        log_analytics=LogAnalytics(
-            workspace_id=config.log_analytics_workspace_id,
-            workspace_key=config.log_analytics_workspace_key,
-            workspace_resource_id=config.log_analytics_workspace_resource_id,
-            log_type="ContainerInstanceLogs",
+    if config.log_analytics_workspace_id:
+        diagnostics = ContainerGroupDiagnostics(
+            log_analytics=LogAnalytics(
+                workspace_id=config.log_analytics_workspace_id,
+                workspace_key=config.log_analytics_workspace_key,
+                workspace_resource_id=config.log_analytics_workspace_resource_id,
+                log_type="ContainerInstanceLogs",
+            )
         )
-    )
+    else:
+        diagnostics = None
 
     cgroup = ContainerGroup(
         identity=identity,
