@@ -11,10 +11,19 @@ def test__build_container_command_post_v4(version):
     # arrange
 
     # act
-    actual = _build_container_command("id", version, False)
+    actual = _build_container_command("id", version, False, "30m")
 
     # assert
-    assert actual == ["/app/.venv/bin/python", "-m", "nhp.docker", "id.json"]
+    assert actual == [
+        "timeout",
+        "-s",
+        "SIGKILL",
+        "30m",
+        "/app/.venv/bin/python",
+        "-m",
+        "nhp.docker",
+        "id.json",
+    ]
 
 
 def test_build_container_command_pre_v4():
@@ -24,7 +33,7 @@ def test_build_container_command_pre_v4():
     actual = _build_container_command("id", "v3.9.1", False)
 
     # assert
-    assert actual == ["/opt/docker_run.py", "id.json"]
+    assert actual == ["timeout", "-s", "SIGKILL", "60m", "/opt/docker_run.py", "id.json"]
 
 
 def test__build_container_command_full_model_results():
@@ -35,6 +44,10 @@ def test__build_container_command_full_model_results():
 
     # assert
     assert actual == [
+        "timeout",
+        "-s",
+        "SIGKILL",
+        "60m",
         "/app/.venv/bin/python",
         "-m",
         "nhp.docker",
@@ -79,13 +92,13 @@ def test_create_and_start_container_with_log_analytics(mocker, config):
     )
 
     # act
-    create_and_start_container(metadata, True, "credential", config)  # type: ignore
+    create_and_start_container(metadata, True, "30m", "credential", config)  # type: ignore
 
     # assert
     m_container_instance_management_client.assert_called_once_with("credential", "subscription_id")
     m_resource_requests.assert_called_once_with(memory_in_gb=4.0, cpu=2)
     m_resource_requirements.assert_called_once_with(requests="resource_requests")
-    m_build_container_command.assert_called_once_with("id", "v4.0", True)
+    m_build_container_command.assert_called_once_with("id", "v4.0", True, "30m")
     m_container.assert_called_once_with(
         name="id",
         image="container_image:v4.0",
@@ -158,13 +171,13 @@ def test_create_and_start_container_without_log_analytics(mocker, config):
     )
 
     # act
-    create_and_start_container(metadata, True, "credential", config)  # type: ignore
+    create_and_start_container(metadata, True, "30m", "credential", config)  # type: ignore
 
     # assert
     m_container_instance_management_client.assert_called_once_with("credential", "subscription_id")
     m_resource_requests.assert_called_once_with(memory_in_gb=4.0, cpu=2)
     m_resource_requirements.assert_called_once_with(requests="resource_requests")
-    m_build_container_command.assert_called_once_with("id", "v4.0", True)
+    m_build_container_command.assert_called_once_with("id", "v4.0", True, "30m")
     m_container.assert_called_once_with(
         name="id",
         image="container_image:v4.0",

@@ -15,6 +15,7 @@ def create_model_run(
     params: dict,
     app_version: str,
     save_full_model_results: bool = False,
+    timeout: str = "60m",
     credential: TokenCredential = DefaultAzureCredential(),
     config=Config.create_from_envvars(),
 ) -> dict:
@@ -26,6 +27,8 @@ def create_model_run(
     :type app_version: str
     :param save_full_model_results: Whether to save full model results, defaults to False
     :type save_full_model_results: bool, optional
+    :param timeout: the timeout for the container, defaults to "60m"
+    :type timeout: str, optional
     :param credential: Credential for authenticating with Azure,
         defaults to DefaultAzureCredential()
     :type credential: TokenCredential, optional
@@ -47,6 +50,6 @@ def create_model_run(
     upload_params_to_blob(params_str, metadata, credential, config)
 
     # 3. create a new container instance
-    create_and_start_container(metadata, save_full_model_results, credential, config)
+    create_and_start_container(metadata, save_full_model_results, timeout, credential, config)
 
     return metadata

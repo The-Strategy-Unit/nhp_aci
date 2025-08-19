@@ -22,11 +22,19 @@ from azure.mgmt.containerinstance.models import (
 from nhp.aci.config import Config
 
 
-def _build_container_command(model_id: str, tag: str, save_full_model_results: bool) -> list[str]:
+def _build_container_command(
+    model_id: str, tag: str, save_full_model_results: bool, timeout: str = "60m"
+) -> list[str]:
     # before v4.0, the containers are started using /opt/docker_run.py
-    match = re.match(r"^v(\d+)\.", tag)
+    match = re.match(r"^v(\d+)\.(\d)", tag)
     before_v4 = match and int(match.group(1)) < 4  # noqa: PLR2004
-    command = ["/opt/docker_run.py"] if before_v4 else ["/app/.venv/bin/python", "-m", "nhp.docker"]
+
+    command = ["timeout", "-s", "SIGKILL", timeout]
+
+    if before_v4:
+        command.append("/opt/docker_run.py")
+    else:
+        command += ["/app/.venv/bin/python", "-m", "nhp.docker"]
 
     command.append(f"{model_id}.json")
     if save_full_model_results:
@@ -38,6 +46,7 @@ def _build_container_command(model_id: str, tag: str, save_full_model_results: b
 def create_and_start_container(
     metadata: dict,
     save_full_model_results: bool = False,
+    timeout: str = "60m",
     credential: TokenCredential = DefaultAzureCredential(),
     config: Config = Config.create_from_envvars(),
 ) -> None:
@@ -47,6 +56,8 @@ def create_and_start_container(
     :type metadata: dict
     :param save_full_model_results: whether to save the full model results, defaults to False
     :type save_full_model_results: bool, optional
+    :param timeout: the timeout for the container, defaults to "60m"
+    :type timeout: str, optional
     :param credential: Credential for authenticating with Azure,
         defaults to DefaultAzureCredential()
     :type credential: TokenCredential, optional
@@ -63,7 +74,7 @@ def create_and_start_container(
     )
     container_resource_requirements = ResourceRequirements(requests=container_resource_requests)
 
-    command = _build_container_command(model_id, tag, save_full_model_results)
+    command = _build_container_command(model_id, tag, save_full_model_results, timeout)
 
     container = Container(
         name=model_id,
