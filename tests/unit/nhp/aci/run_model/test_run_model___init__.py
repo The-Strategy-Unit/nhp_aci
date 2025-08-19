@@ -13,10 +13,12 @@ def test_create_model_run(mocker):
     m_create_and_start_container = mocker.patch("nhp.aci.run_model.create_and_start_container")
 
     # act
-    actual = create_model_run("params", "v1.0", True, "credential", "config")  # type: ignore
+    actual = create_model_run("params", "v1.0", True, "30m", "credential", "config")  # type: ignore
 
     # assert
     assert actual == metadata
     m_prepare_params.assert_called_once_with("params", "v1.0")
     m_upload_params_to_blob.assert_called_once_with("params_str", metadata, "credential", "config")
-    m_create_and_start_container.assert_called_once_with(metadata, True, "credential", "config")
+    m_create_and_start_container.assert_called_once_with(
+        metadata, True, "30m", "credential", "config"
+    )

@@ -46,6 +46,7 @@ def _build_container_command(
 def create_and_start_container(
     metadata: dict,
     save_full_model_results: bool = False,
+    timeout: str = "60m",
     credential: TokenCredential = DefaultAzureCredential(),
     config: Config = Config.create_from_envvars(),
 ) -> None:
@@ -55,6 +56,8 @@ def create_and_start_container(
     :type metadata: dict
     :param save_full_model_results: whether to save the full model results, defaults to False
     :type save_full_model_results: bool, optional
+    :param timeout: the timeout for the container, defaults to "60m"
+    :type timeout: str, optional
     :param credential: Credential for authenticating with Azure,
         defaults to DefaultAzureCredential()
     :type credential: TokenCredential, optional
@@ -71,7 +74,7 @@ def create_and_start_container(
     )
     container_resource_requirements = ResourceRequirements(requests=container_resource_requests)
 
-    command = _build_container_command(model_id, tag, save_full_model_results)
+    command = _build_container_command(model_id, tag, save_full_model_results, timeout)
 
     container = Container(
         name=model_id,
