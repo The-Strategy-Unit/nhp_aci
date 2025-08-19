@@ -11,10 +11,19 @@ def test__build_container_command_post_v4(version):
     # arrange
 
     # act
-    actual = _build_container_command("id", version, False)
+    actual = _build_container_command("id", version, False, "30m")
 
     # assert
-    assert actual == ["/app/.venv/bin/python", "-m", "nhp.docker", "id.json"]
+    assert actual == [
+        "timeout",
+        "-s",
+        "SIGKILL",
+        "30m",
+        "/app/.venv/bin/python",
+        "-m",
+        "nhp.docker",
+        "id.json",
+    ]
 
 
 def test_build_container_command_pre_v4():
@@ -35,6 +44,10 @@ def test__build_container_command_full_model_results():
 
     # assert
     assert actual == [
+        "timeout",
+        "-s",
+        "SIGKILL",
+        "60m",
         "/app/.venv/bin/python",
         "-m",
         "nhp.docker",

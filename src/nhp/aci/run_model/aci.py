@@ -22,11 +22,17 @@ from azure.mgmt.containerinstance.models import (
 from nhp.aci.config import Config
 
 
-def _build_container_command(model_id: str, tag: str, save_full_model_results: bool) -> list[str]:
+def _build_container_command(
+    model_id: str, tag: str, save_full_model_results: bool, timeout: str = "60m"
+) -> list[str]:
     # before v4.0, the containers are started using /opt/docker_run.py
-    match = re.match(r"^v(\d+)\.", tag)
+    match = re.match(r"^v(\d+)\.(\d)", tag)
     before_v4 = match and int(match.group(1)) < 4  # noqa: PLR2004
-    command = ["/opt/docker_run.py"] if before_v4 else ["/app/.venv/bin/python", "-m", "nhp.docker"]
+    command = (
+        ["/opt/docker_run.py"]
+        if before_v4
+        else ["timeout", "-s", "SIGKILL", timeout, "/app/.venv/bin/python", "-m", "nhp.docker"]
+    )
 
     command.append(f"{model_id}.json")
     if save_full_model_results:
