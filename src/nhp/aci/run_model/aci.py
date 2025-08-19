@@ -28,11 +28,13 @@ def _build_container_command(
     # before v4.0, the containers are started using /opt/docker_run.py
     match = re.match(r"^v(\d+)\.(\d)", tag)
     before_v4 = match and int(match.group(1)) < 4  # noqa: PLR2004
-    command = (
-        ["/opt/docker_run.py"]
-        if before_v4
-        else ["timeout", "-s", "SIGKILL", timeout, "/app/.venv/bin/python", "-m", "nhp.docker"]
-    )
+
+    command = ["timeout", "-s", "SIGKILL", timeout]
+
+    if before_v4:
+        command.append("/opt/docker_run.py")
+    else:
+        command += ["/app/.venv/bin/python", "-m", "nhp.docker"]
 
     command.append(f"{model_id}.json")
     if save_full_model_results:

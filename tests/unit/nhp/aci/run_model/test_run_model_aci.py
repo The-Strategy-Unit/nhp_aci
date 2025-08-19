@@ -33,7 +33,7 @@ def test_build_container_command_pre_v4():
     actual = _build_container_command("id", "v3.9.1", False)
 
     # assert
-    assert actual == ["/opt/docker_run.py", "id.json"]
+    assert actual == ["timeout", "-s", "SIGKILL", "60m", "/opt/docker_run.py", "id.json"]
 
 
 def test__build_container_command_full_model_results():
