@@ -21,9 +21,6 @@ package-dir = { "" = "src" }
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.setuptools.package-data]
-"nhp.model.data.reference" = ["*.csv", "*.json"]
-
 [project.optional-dependencies]
 dev = [
     "coverage>=7.2",
