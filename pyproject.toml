@@ -90,3 +90,6 @@ typeCheckingMode = "basic"
 
 [tool.setuptools_scm]
 version_file = "src/nhp/_version.py"
+
+[project.scripts]
+nhp_aci = "nhp.aci.__main__:main"

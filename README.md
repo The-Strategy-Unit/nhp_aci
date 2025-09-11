@@ -34,3 +34,13 @@ Create a new virtual environment (`uv venv --python 3.12`), then install depende
 
 You will then need to create a `.env` file. There is a sample file (`.env.sample`) which you can use as a template.
 Speak to colleagues to get the correct values.
+
+## Running from the command line
+
+If used with `uv` in the steps above, activate the venv, then you can run:
+
+- `nhp_aci run`
+- `nhp_aci status`
+- `nhp_aci clean`
+
+for each of these commands, append `-h` to see the usage.

@@ -17,7 +17,7 @@ def create_model_run(
     save_full_model_results: bool = False,
     timeout: str = "60m",
     credential: TokenCredential = DefaultAzureCredential(),
-    config=Config.create_from_envvars(),
+    config: Config = Config.create_from_envvars(),
 ) -> dict:
     """Create a model run.
 
