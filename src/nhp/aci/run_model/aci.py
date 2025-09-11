@@ -118,5 +118,3 @@ def create_and_start_container(
 
     client.container_groups.begin_create_or_update(config.resource_group, f"{model_id}", cgroup)
     logging.info("container created with command: %s", " ".join(command))
-    logging.info("container created with command: %s", " ".join(command))
-    logging.info("container created with command: %s", " ".join(command))
