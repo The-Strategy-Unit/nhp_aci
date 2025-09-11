@@ -17,7 +17,7 @@ def test_get_current_model_runs(mocker, config):
     )
 
     m_cred = mocker.patch("nhp.aci.clean_up.DefaultAzureCredential", return_value="cred")
-    m_config = mocker.patch("nhp.aci.clean_up.Config.create_from_envvars", return_value="config")
+    m_config = mocker.patch("nhp.aci.clean_up.Config.create_from_envvars", return_value=config)
 
     ma = Mock()
     ma.name = "a"
@@ -56,8 +56,12 @@ def test_get_current_model_runs_creates_credential_and_config_if_none(mocker, co
         return_value="state",
     )
 
-    m_cred = mocker.patch("nhp.aci.clean_up.DefaultAzureCredential", return_value="cred")
-    m_config = mocker.patch("nhp.aci.clean_up.Config.create_from_envvars", return_value="config")
+    m_cred = mocker.patch(
+        "nhp.aci.status.list_current_model_runs.DefaultAzureCredential", return_value="cred"
+    )
+    m_config = mocker.patch(
+        "nhp.aci.status.list_current_model_runs.Config.create_from_envvars", return_value=config
+    )
 
     ma = Mock()
     ma.name = "a"
