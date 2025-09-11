@@ -16,8 +16,8 @@ def create_model_run(
     app_version: str,
     save_full_model_results: bool = False,
     timeout: str = "60m",
-    credential: TokenCredential = DefaultAzureCredential(),
-    config: Config = Config.create_from_envvars(),
+    credential: TokenCredential | None = None,
+    config: Config | None = None,
 ) -> dict:
     """Create a model run.
 
@@ -30,13 +30,18 @@ def create_model_run(
     :param timeout: the timeout for the container, defaults to "60m"
     :type timeout: str, optional
     :param credential: Credential for authenticating with Azure,
-        defaults to DefaultAzureCredential()
+        defaults to None, and calls DefaultAzureCredential()
     :type credential: TokenCredential, optional
-    :param config: Configuration object, defaults to creating from envvars
+    :param config: Configuration object, defaults to  None, and calls Config.create_from_envvars()
     :type config: Config, optional
     :return: A dictionary with metadata for the model run.
     :rtype: dict
     """
+    # 0. set default argument values
+    if credential is None:
+        credential = DefaultAzureCredential()
+    if config is None:
+        config = Config.create_from_envvars()
     # 1. prepare params and metadata
     params_str, metadata = prepare_params(params, app_version)
 

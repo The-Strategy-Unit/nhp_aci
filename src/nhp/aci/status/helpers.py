@@ -9,7 +9,7 @@ def get_container_group_current_state(
     container_group_name: str,
     client: ContainerInstanceManagementClient,
     resource_group: str,
-    config: Config = Config.create_from_envvars(),
+    config: Config,
 ) -> dict:
     """Get the state of a container group instance.
 
@@ -19,8 +19,8 @@ def get_container_group_current_state(
     :type client: ContainerInstanceManagementClient
     :param resource_group: Which resource group the container group is in.
     :type resource_group: str
-    :param config: Configuration object, defaults to creating from envvars
-    :type config: Config, optional
+    :param config: Configuration object
+    :type config: Config
     :return: dictionary with the state of the container group instance.
     :rtype: dict
     """

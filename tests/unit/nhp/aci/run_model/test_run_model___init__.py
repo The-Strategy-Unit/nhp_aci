@@ -12,6 +12,9 @@ def test_create_model_run(mocker):
     m_upload_params_to_blob = mocker.patch("nhp.aci.run_model.upload_params_to_blob")
     m_create_and_start_container = mocker.patch("nhp.aci.run_model.create_and_start_container")
 
+    m_cred = mocker.patch("nhp.aci.run_model.DefaultAzureCredential", return_value="credential")
+    m_config = mocker.patch("nhp.aci.run_model.Config.create_from_envvars", return_value="config")
+
     # act
     actual = create_model_run("params", "v1.0", True, "30m", "credential", "config")  # type: ignore
 
@@ -22,3 +25,31 @@ def test_create_model_run(mocker):
     m_create_and_start_container.assert_called_once_with(
         metadata, True, "30m", "credential", "config"
     )
+    m_cred.assert_not_called()
+    m_config.assert_not_called()
+
+
+def test_create_model_run_creates_credential_and_config_if_none(mocker):
+    # arrange
+    metadata = {"id": "id", "app_version": "app_version"}
+    m_prepare_params = mocker.patch(
+        "nhp.aci.run_model.prepare_params", return_value=("params_str", metadata)
+    )
+    m_upload_params_to_blob = mocker.patch("nhp.aci.run_model.upload_params_to_blob")
+    m_create_and_start_container = mocker.patch("nhp.aci.run_model.create_and_start_container")
+
+    m_cred = mocker.patch("nhp.aci.run_model.DefaultAzureCredential", return_value="credential")
+    m_config = mocker.patch("nhp.aci.run_model.Config.create_from_envvars", return_value="config")
+
+    # act
+    actual = create_model_run("params", "v1.0", True, "30m")  # type: ignore
+
+    # assert
+    assert actual == metadata
+    m_prepare_params.assert_called_once_with("params", "v1.0")
+    m_upload_params_to_blob.assert_called_once_with("params_str", metadata, "credential", "config")
+    m_create_and_start_container.assert_called_once_with(
+        metadata, True, "30m", "credential", "config"
+    )
+    m_cred.assert_called_once_with()
+    m_config.assert_called_once_with()

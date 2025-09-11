@@ -84,11 +84,18 @@ def test__get_aci_status(mocker, config):
     # assert
     assert actual == "state"
     m_cimc.assert_called_once_with("credential", "subscription_id")
-    m_gcgis.assert_called_once_with("name", m_cimc(), "resource_group")
+    m_gcgis.assert_called_once_with("name", m_cimc(), "resource_group", config)
 
 
 def test_get_model_run_status(mocker, config):
     # arrange
+    m_cred = mocker.patch(
+        "nhp.aci.status.model_run_status.DefaultAzureCredential", return_value="credential"
+    )
+    m_config = mocker.patch(
+        "nhp.aci.status.model_run_status.Config.create_from_envvars", return_value=config
+    )
+
     m_gqm = mocker.patch(
         "nhp.aci.status.model_run_status._get_queue_metadata",
         return_value={
@@ -111,6 +118,45 @@ def test_get_model_run_status(mocker, config):
     }
     m_gqm.assert_called_once_with("name", "credential", config)
     m_gas.assert_called_once_with("name", "credential", config)
+
+    m_cred.assert_not_called()
+    m_config.assert_not_called()
+
+
+def test_get_model_run_status_creates_credential_and_config_if_none(mocker, config):
+    # arrange
+    m_cred = mocker.patch(
+        "nhp.aci.status.model_run_status.DefaultAzureCredential", return_value="credential"
+    )
+    m_config = mocker.patch(
+        "nhp.aci.status.model_run_status.Config.create_from_envvars", return_value=config
+    )
+
+    m_gqm = mocker.patch(
+        "nhp.aci.status.model_run_status._get_queue_metadata",
+        return_value={
+            "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
+            "model_runs": 100,
+        },
+    )
+    m_gas = mocker.patch(
+        "nhp.aci.status.model_run_status._get_aci_status", return_value={"state": "running"}
+    )
+
+    # act
+    actual = get_model_run_status("name")
+
+    # assert
+    assert actual == {
+        "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
+        "model_runs": 100,
+        "state": "running",
+    }
+    m_gqm.assert_called_once_with("name", "credential", config)
+    m_gas.assert_called_once_with("name", "credential", config)
+
+    m_cred.assert_called_once_with()
+    m_config.assert_called_once_with()
 
 
 def test_get_model_run_status_resource_not_found_with_status(mocker, config):

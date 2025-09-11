@@ -9,19 +9,24 @@ from nhp.aci.status.helpers import get_container_group_current_state
 
 
 def get_current_model_runs(
-    credential: TokenCredential = DefaultAzureCredential(),
-    config: Config = Config.create_from_envvars(),
+    credential: TokenCredential | None = None,
+    config: Config | None = None,
 ) -> dict:
     """Get the status of all current model runs.
 
     :param credential: Credential for authenticating with Azure,
-        defaults to DefaultAzureCredential()
+        defaults to None, and calls DefaultAzureCredential()
     :type credential: TokenCredential, optional
-    :param config: Configuration object, defaults to creating from envvars
+    :param config: Configuration object, defaults to  None, and calls Config.create_from_envvars()
     :type config: Config, optional
     :return: A dictionary with the status of all current model runs.
     :rtype: dict
     """
+    if credential is None:
+        credential = DefaultAzureCredential()
+    if config is None:
+        config = Config.create_from_envvars()
+
     client = ContainerInstanceManagementClient(credential, config.subscription_id)
     resource_group = config.resource_group
 
