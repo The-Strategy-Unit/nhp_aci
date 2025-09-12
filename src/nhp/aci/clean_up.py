@@ -11,8 +11,8 @@ from nhp.aci.config import Config
 
 def _delete_blob_in_queue(
     model_run_id: str,
-    credential: TokenCredential = DefaultAzureCredential(),
-    config: Config = Config.create_from_envvars(),
+    credential: TokenCredential,
+    config: Config,
 ) -> None:
     """Delete params in queue.
 
@@ -20,11 +20,11 @@ def _delete_blob_in_queue(
 
     :param model_run_id: The id of the model run to delete.
     :type model_run_id: str
-    :param credential: Credential for authenticating with Azure,
-        defaults to DefaultAzureCredential()
-    :type credential: TokenCredential, optional
-    :param config: Configuration object, defaults to creating from envvars
-    :type config: Config, optional
+    :param credential: Credential for authenticating with Azure
+    :type credential: TokenCredential
+    :param config: Configuration object
+    :type config: Config
+    :return: A dictionary with metadata for the model run.
     """
     filename = f"{model_run_id}.json"
     bsc = BlobServiceClient(config.storage_endpoint, credential)
@@ -36,22 +36,17 @@ def _delete_blob_in_queue(
         print(f"{filename} does not exist, potentially already removed")
 
 
-def _delete_container_group(
-    model_run_id: str,
-    credential: TokenCredential = DefaultAzureCredential(),
-    config: Config = Config.create_from_envvars(),
-) -> None:
+def _delete_container_group(model_run_id: str, credential: TokenCredential, config: Config) -> None:
     """Delete container group.
 
-    Clean up a model run by deleting the compute resource in ACI.
+        Clean up a model run by deleting the compute resource in ACI.
 
-    :param model_run_id: The id of the model run to delete.
-    :type model_run_id: str
-    :param credential: Credential for authenticating with Azure,
-        defaults to DefaultAzureCredential()
-    :type credential: TokenCredential, optional
-    :param config: Configuration object, defaults to creating from envvars
-    :type config: Config, optional
+        :param model_run_id: The id of the model run to delete.
+        :type model_run_id: str
+    :param credential: Credential for authenticating with Azure
+        :type credential: TokenCredential
+        :param config: Configuration object
+        :type config: Config
     """
     client = ContainerInstanceManagementClient(credential, config.subscription_id)
     try:
@@ -63,8 +58,8 @@ def _delete_container_group(
 
 def clean_up_model_run(
     model_run_id: str,
-    credential: TokenCredential = DefaultAzureCredential(),
-    config: Config = Config.create_from_envvars(),
+    credential: TokenCredential | None = None,
+    config: Config | None = None,
 ) -> None:
     """Clean up a model run.
 
@@ -74,10 +69,15 @@ def clean_up_model_run(
     :param model_run_id: The id of the model run to delete.
     :type model_run_id: str
     :param credential: Credential for authenticating with Azure,
-        defaults to DefaultAzureCredential()
+        defaults to None, and calls DefaultAzureCredential()
     :type credential: TokenCredential, optional
-    :param config: Configuration object, defaults to creating from envvars
+    :param config: Configuration object, defaults to  None, and calls Config.create_from_envvars()
     :type config: Config, optional
+    :return: A dictionary with metadata for the model run.
     """
+    if credential is None:
+        credential = DefaultAzureCredential()
+    if config is None:
+        config = Config.create_from_envvars()
     _delete_blob_in_queue(model_run_id, credential, config)
     _delete_container_group(model_run_id, credential, config)

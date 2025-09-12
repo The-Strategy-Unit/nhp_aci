@@ -87,12 +87,35 @@ def test_delete_container_group_not_found(mocker):
 
 def test_clean_up_model_run(mocker):
     # arrange
+    m_cred = mocker.patch("nhp.aci.clean_up.DefaultAzureCredential", return_value="cred")
+    m_config = mocker.patch("nhp.aci.clean_up.Config.create_from_envvars", return_value="config")
     m1 = mocker.patch("nhp.aci.clean_up._delete_blob_in_queue")
     m2 = mocker.patch("nhp.aci.clean_up._delete_container_group")
 
     # act
-    clean_up_model_run("id", "credential", "config")  # type: ignore
+    clean_up_model_run("id", "cred", "config")  # type: ignore
 
     # assert
-    m1.assert_called_once_with("id", "credential", "config")
-    m2.assert_called_once_with("id", "credential", "config")
+    m1.assert_called_once_with("id", "cred", "config")
+    m2.assert_called_once_with("id", "cred", "config")
+
+    m_cred.assert_not_called()
+    m_config.assert_not_called()
+
+
+def test_clean_up_model_run_creates_credential_and_config_if_none(mocker):
+    # arrange
+    m_cred = mocker.patch("nhp.aci.clean_up.DefaultAzureCredential", return_value="cred")
+    m_config = mocker.patch("nhp.aci.clean_up.Config.create_from_envvars", return_value="config")
+    m1 = mocker.patch("nhp.aci.clean_up._delete_blob_in_queue")
+    m2 = mocker.patch("nhp.aci.clean_up._delete_container_group")
+
+    # act
+    clean_up_model_run("id")  # type: ignore
+
+    # assert
+    m1.assert_called_once_with("id", "cred", "config")
+    m2.assert_called_once_with("id", "cred", "config")
+
+    m_cred.assert_called_once_with()
+    m_config.assert_called_once_with()

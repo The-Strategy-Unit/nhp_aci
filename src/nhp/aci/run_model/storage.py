@@ -4,7 +4,6 @@ import logging
 
 from azure.core.credentials import TokenCredential
 from azure.core.exceptions import ResourceExistsError
-from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobServiceClient
 
 from nhp.aci.config import Config
@@ -13,8 +12,8 @@ from nhp.aci.config import Config
 def upload_params_to_blob(
     params_str: str,
     metadata: dict,
-    credential: TokenCredential = DefaultAzureCredential(),
-    config: Config = Config.create_from_envvars(),
+    credential: TokenCredential,
+    config: Config,
 ) -> None:
     """Upload the parameters to Azure Blob Storage.
 
@@ -22,8 +21,7 @@ def upload_params_to_blob(
     :type params_str: str
     :param metadata: The metadata of the model run.
     :type metadata: dict
-    :param credential: Credential for authenticating with Azure,
-        defaults to DefaultAzureCredential()
+    :param credential: Credential for authenticating with Azure
     :type credential: TokenCredential, optional
     :param config: Configuration object, defaults to creating from envvars
     :type config: Config, optional

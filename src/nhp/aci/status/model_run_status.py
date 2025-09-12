@@ -13,7 +13,7 @@ from nhp.aci.status.helpers import get_container_group_current_state
 def _get_queue_metadata(
     container_group_name: str,
     credential: TokenCredential,
-    config: Config = Config.create_from_envvars(),
+    config: Config,
 ) -> dict:
     bsc = BlobServiceClient(config.storage_endpoint, credential)
     cc = bsc.get_container_client("queue")
@@ -42,31 +42,36 @@ def _get_queue_metadata(
 def _get_aci_status(
     container_group_name: str,
     credential: TokenCredential,
-    config: Config = Config.create_from_envvars(),
+    config: Config,
 ) -> dict:
     client = ContainerInstanceManagementClient(credential, config.subscription_id)
     resource_group = config.resource_group
 
-    return get_container_group_current_state(container_group_name, client, resource_group)
+    return get_container_group_current_state(container_group_name, client, resource_group, config)
 
 
 def get_model_run_status(
     container_group_name: str,
-    credential: TokenCredential = DefaultAzureCredential(),
-    config=Config.create_from_envvars(),
+    credential: TokenCredential | None = None,
+    config: Config | None = None,
 ) -> dict | None:
     """Get the status of a model run by its container group name.
 
     :param container_group_name: The name of the container group.
     :type container_group_name: str
     :param credential: Credential for authenticating with Azure,
-        defaults to DefaultAzureCredential()
+        defaults to None, and calls DefaultAzureCredential()
     :type credential: TokenCredential, optional
-    :param config: Configuration object, defaults to creating from envvars
+    :param config: Configuration object, defaults to  None, and calls Config.create_from_envvars()
     :type config: Config, optional
     :return: The status of the model run, or None if it does not exist.
     :rtype: dict | None
     """
+    if credential is None:
+        credential = DefaultAzureCredential()
+    if config is None:
+        config = Config.create_from_envvars()
+
     status = _get_queue_metadata(container_group_name, credential, config)
 
     try:
