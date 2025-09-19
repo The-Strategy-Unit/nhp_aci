@@ -9,6 +9,8 @@ from datetime import datetime, timezone
 import requests
 from jsonschema import validate
 
+logger = logging.getLogger(__name__)
+
 
 def generate_id(params: str, metadata: dict) -> str:
     """Generate an ID for the model run.
@@ -88,7 +90,7 @@ def validate_params(params: dict, app_version: str) -> None:
     uri = f"https://the-strategy-unit.github.io/nhp_model/{app_version}/params-schema.json"
     req = requests.get(uri)
     if req.status_code != 200:  # noqa: PLR2004
-        logging.warning("Unable to validate schema for app_version %s", app_version)
+        logger.warning("Unable to validate schema for app_version %s", app_version)
         return
     schema = req.json()
     validate(params, schema)

@@ -10,6 +10,8 @@ from nhp.aci.run_model.aci import create_and_start_container
 from nhp.aci.run_model.helpers import prepare_params
 from nhp.aci.run_model.storage import upload_params_to_blob
 
+logger = logging.getLogger(__name__)
+
 
 def create_model_run(
     params: dict,
@@ -45,10 +47,11 @@ def create_model_run(
     # 1. prepare params and metadata
     params_str, metadata = prepare_params(params, app_version)
 
-    logging.info(
-        "received request for model run %s (%s)",
+    logger.info(
+        "received request for model run %s (%s) from user %s",
         metadata["id"],
         metadata["app_version"],
+        metadata["user"],
     )
 
     # 2. upload params to blob storage
