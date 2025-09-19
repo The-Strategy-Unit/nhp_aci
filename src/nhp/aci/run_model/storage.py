@@ -8,6 +8,8 @@ from azure.storage.blob import BlobServiceClient
 
 from nhp.aci.config import Config
 
+logger = logging.getLogger(__name__)
+
 
 def upload_params_to_blob(
     params_str: str,
@@ -30,6 +32,6 @@ def upload_params_to_blob(
     container = client.get_container_client("queue")
     try:
         container.upload_blob(f"{metadata['id']}.json", params_str, metadata=metadata)
-        logging.info("params uploaded to queue")
+        logger.info("params uploaded to queue")
     except ResourceExistsError:
-        logging.warning("file already exists, skipping upload")
+        logger.warning("file already exists, skipping upload")

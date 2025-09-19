@@ -5,7 +5,7 @@ from nhp.aci.run_model import create_model_run
 
 def test_create_model_run(mocker):
     # arrange
-    metadata = {"id": "id", "app_version": "app_version"}
+    metadata = {"id": "id", "app_version": "app_version", "user": "user"}
     m_prepare_params = mocker.patch(
         "nhp.aci.run_model.prepare_params", return_value=("params_str", metadata)
     )
@@ -31,7 +31,7 @@ def test_create_model_run(mocker):
 
 def test_create_model_run_creates_credential_and_config_if_none(mocker):
     # arrange
-    metadata = {"id": "id", "app_version": "app_version"}
+    metadata = {"id": "id", "app_version": "app_version", "user": "user"}
     m_prepare_params = mocker.patch(
         "nhp.aci.run_model.prepare_params", return_value=("params_str", metadata)
     )

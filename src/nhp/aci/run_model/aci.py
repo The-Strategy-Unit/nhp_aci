@@ -21,6 +21,8 @@ from azure.mgmt.containerinstance.models import (
 
 from nhp.aci.config import Config
 
+logger = logging.getLogger(__name__)
+
 
 def _build_container_command(
     model_id: str, tag: str, save_full_model_results: bool, timeout: str = "60m"
@@ -117,4 +119,4 @@ def create_and_start_container(
     )
 
     client.container_groups.begin_create_or_update(config.resource_group, f"{model_id}", cgroup)
-    logging.info("container created with command: %s", " ".join(command))
+    logger.info("container created with command: %s", " ".join(command))
