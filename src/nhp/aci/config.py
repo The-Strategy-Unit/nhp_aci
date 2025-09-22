@@ -2,8 +2,39 @@
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Literal
 
-import dotenv
+from dotenv import load_dotenv
+
+
+def load_env_files() -> None:
+    """
+    Load environment variables from config directory first, then project root.
+
+    Returns:
+        True if any .env file was loaded successfully, False otherwise
+    """
+    repo_name = Path.cwd().name
+
+    # Helper for static analysers
+    os_name: Literal["nt", "posix"] = os.name  # type: ignore
+
+    if os_name == "nt":  # Windows
+        config_path = Path(os.environ["LOCALAPPDATA"]) / repo_name / ".env"
+    else:  # Unix-like systems
+        config_path = Path.home() / ".config" / repo_name / ".env"
+
+    local_path = Path.cwd() / ".env"
+
+    if config_path.exists() and load_dotenv(config_path, override=True):
+        return
+
+    if local_path.exists() and load_dotenv(local_path):
+        return
+
+    # If we get here, no .env file was found
+    raise FileNotFoundError(f"No .env file found in either {config_path} or {local_path}")
 
 
 @dataclass
@@ -28,7 +59,7 @@ class Config:
     @staticmethod
     def create_from_envvars():
         """Create a Config from environment variables."""
-        dotenv.load_dotenv()
+        load_env_files()
 
         container_memory = float(os.environ["CONTAINER_MEMORY"])
         container_cpu = int(os.environ["CONTAINER_CPU"])
