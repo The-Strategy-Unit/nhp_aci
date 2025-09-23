@@ -11,8 +11,8 @@ from dotenv import load_dotenv
 def load_env_files() -> None:
     """Load environment variables from config directory first, then project root.
 
-    Returns:
-        True if any .env file was loaded successfully, False otherwise
+    Raises:
+        FileNotFoundError: If no .env file is found in either location
     """
     repo_name = Path.cwd().name
 
