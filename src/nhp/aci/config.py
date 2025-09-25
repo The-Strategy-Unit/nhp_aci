@@ -8,21 +8,20 @@ from typing import Literal
 from dotenv import load_dotenv
 
 
-def load_env_files() -> None:
+def load_env_files(config_dir: str) -> None:
     """Load environment variables from config directory first, then project root.
 
     Raises:
         FileNotFoundError: If no .env file is found in either location
     """
-    repo_name = Path.cwd().name
 
     # Helper for static analysers
     os_name: Literal["nt", "posix"] = os.name  # type: ignore
 
     if os_name == "nt":  # Windows
-        config_path = Path(os.environ["LOCALAPPDATA"]) / repo_name / ".env"
+        config_path = Path(os.environ["LOCALAPPDATA"]) / config_dir / ".env"
     else:  # Unix-like systems
-        config_path = Path.home() / ".config" / repo_name / ".env"
+        config_path = Path.home() / ".config" / config_dir / ".env"
 
     local_path = Path.cwd() / ".env"
 
@@ -56,9 +55,9 @@ class Config:
     log_analytics_workspace_resource_id: str
 
     @staticmethod
-    def create_from_envvars():
+    def create_from_envvars(config_dir: str = "nhp_aci") -> "Config":
         """Create a Config from environment variables."""
-        load_env_files()
+        load_env_files(config_dir=config_dir)
 
         container_memory = float(os.environ["CONTAINER_MEMORY"])
         container_cpu = int(os.environ["CONTAINER_CPU"])
