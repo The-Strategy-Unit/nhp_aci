@@ -14,7 +14,6 @@ def load_env_files(config_dir: str) -> None:
     Raises:
         FileNotFoundError: If no .env file is found in either location
     """
-
     # Helper for static analysers
     os_name: Literal["nt", "posix"] = os.name  # type: ignore
 
