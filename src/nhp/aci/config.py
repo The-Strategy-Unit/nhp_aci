@@ -3,35 +3,9 @@
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
 
 from dotenv import load_dotenv
-
-
-def load_env_files(config_dir: str) -> None:
-    """Load environment variables from config directory first, then project root.
-
-    Raises:
-        FileNotFoundError: If no .env file is found in either location
-    """
-    # Helper for static analysers
-    os_name: Literal["nt", "posix"] = os.name  # type: ignore
-
-    if os_name == "nt":  # Windows
-        config_path = Path(os.environ["LOCALAPPDATA"]) / config_dir / ".env"
-    else:  # Unix-like systems
-        config_path = Path.home() / ".config" / config_dir / ".env"
-
-    local_path = Path.cwd() / ".env"
-
-    if config_path.exists() and load_dotenv(config_path, override=True):
-        return
-
-    if local_path.exists() and load_dotenv(local_path):
-        return
-
-    # If we get here, no .env file was found
-    raise FileNotFoundError(f"No .env file found in either {config_path} or {local_path}")
+from platformdirs import user_config_dir
 
 
 @dataclass
@@ -54,9 +28,30 @@ class Config:
     log_analytics_workspace_resource_id: str
 
     @staticmethod
+    def load_env_files(config_dir: str) -> None:
+        """Load environment variables from config directory first, then project root.
+
+        Raises:
+            FileNotFoundError: If no .env file is found in either location
+        """
+        # Use platformdirs to get the user config directory
+        config_path = Path(user_config_dir(config_dir)) / ".env"
+
+        local_path = Path.cwd() / ".env"
+
+        if config_path.exists() and load_dotenv(config_path, override=True):
+            return
+
+        if local_path.exists() and load_dotenv(local_path):
+            return
+
+        # If we get here, no .env file was found
+        raise FileNotFoundError(f"No .env file found in either {config_path} or {local_path}")
+
+    @staticmethod
     def create_from_envvars(config_dir: str = "nhp_aci") -> "Config":
         """Create a Config from environment variables."""
-        load_env_files(config_dir=config_dir)
+        Config.load_env_files(config_dir=config_dir)
 
         container_memory = float(os.environ["CONTAINER_MEMORY"])
         container_cpu = int(os.environ["CONTAINER_CPU"])
