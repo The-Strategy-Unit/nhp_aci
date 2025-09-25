@@ -27,7 +27,7 @@ mock_envvars = {
 
 def test_create_from_envvars(mocker):
     # arrange
-    mocker.patch("nhp.aci.config.Config.load_env_files")
+    mocker.patch("nhp.aci.config.Config.get_config_file_path")
 
     # act
     with patch.dict(os.environ, mock_envvars):
@@ -52,7 +52,7 @@ def test_create_from_envvars(mocker):
 
 def test_create_from_envvars_validates_auto_delete(mocker):
     # arrange
-    mocker.patch("nhp.aci.config.Config.load_env_files")
+    mocker.patch("nhp.aci.config.Config.get_config_file_path")
 
     dt = mock_envvars.copy()
     dt["AUTO_DELETE_COMPLETED_CONTAINERS"] = "True"
@@ -80,16 +80,16 @@ def test_create_from_envvars_validates_auto_delete(mocker):
 
 
 def test_create_from_envvars_passes_config_dir(mocker):
-    """Test that create_from_envvars passes the config_dir to load_env_files."""
+    """Test that create_from_envvars passes the config_dir to get_config_file_path."""
     # arrange
-    load_env_files_mock = mocker.patch("nhp.aci.config.Config.load_env_files")
+    get_config_file_path_mock = mocker.patch("nhp.aci.config.Config.get_config_file_path")
 
     # act
     with patch.dict(os.environ, mock_envvars):
         Config.create_from_envvars(config_dir="custom_dir")
 
     # assert
-    load_env_files_mock.assert_called_once_with(config_dir="custom_dir")
+    get_config_file_path_mock.assert_called_once_with(config_dir="custom_dir")
 
 
 def test_config_storage_endpoint(config):

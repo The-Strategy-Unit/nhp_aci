@@ -28,30 +28,30 @@ class Config:
     log_analytics_workspace_resource_id: str
 
     @staticmethod
-    def load_env_files(config_dir: str) -> None:
-        """Load environment variables from config directory first, then project root.
+    def get_config_file_path(config_dir: str = "nhp_aci") -> str:
+        """Get the config file path.
+
+        Args:
+            config_dir: the name of the config directory, defaults to "nhp_aci"
 
         Raises:
-            FileNotFoundError: If no .env file is found in either location
+            FileNotFoundError: If no .env file is found in the config directory or current directory
+
+        Returns:
+            The absolute path to the .env file
         """
-        # Use platformdirs to get the user config directory
-        config_path = Path(user_config_dir(config_dir)) / ".env"
+        candidates = [Path(user_config_dir(config_dir)) / ".env", Path.cwd() / ".env"]
 
-        local_path = Path.cwd() / ".env"
+        for path in candidates:
+            if path.exists():
+                return str(path)
 
-        if config_path.exists() and load_dotenv(config_path, override=True):
-            return
-
-        if local_path.exists() and load_dotenv(local_path):
-            return
-
-        # If we get here, no .env file was found
-        raise FileNotFoundError(f"No .env file found in either {config_path} or {local_path}")
+        raise FileNotFoundError("No .env file found")
 
     @staticmethod
     def create_from_envvars(config_dir: str = "nhp_aci") -> "Config":
         """Create a Config from environment variables."""
-        Config.load_env_files(config_dir=config_dir)
+        load_dotenv(Config.get_config_file_path(config_dir=config_dir))
 
         container_memory = float(os.environ["CONTAINER_MEMORY"])
         container_cpu = int(os.environ["CONTAINER_CPU"])
