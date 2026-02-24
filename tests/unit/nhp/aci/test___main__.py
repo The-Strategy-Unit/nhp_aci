@@ -276,7 +276,7 @@ class TestStatus:
         args.model_id = None
 
         print_output = []
-        m_print = mocker.patch("builtins.print", side_effect=lambda x: print_output.append(x))
+        m_print = mocker.patch("builtins.print", side_effect=print_output.append)
 
         # act
         _status(args)

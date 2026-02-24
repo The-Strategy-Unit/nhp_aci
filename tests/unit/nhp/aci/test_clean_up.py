@@ -111,7 +111,7 @@ def test_clean_up_model_run_creates_credential_and_config_if_none(mocker):
     m2 = mocker.patch("nhp.aci.clean_up._delete_container_group")
 
     # act
-    clean_up_model_run("id")  # type: ignore
+    clean_up_model_run("id")
 
     # assert
     m1.assert_called_once_with("id", "cred", "config")
