@@ -111,6 +111,7 @@ class TestRun:
         args = Mock()
         args.params = "file.json"
         args.save_full_model_results = False
+        args.results_viewable = False
         args.timeout = "60m"
         args.app_version = None
         args.dataset = None
@@ -127,7 +128,13 @@ class TestRun:
 
         # assert
         m_open.assert_called_once_with("file.json", "r", encoding="UTF-8")
-        m_create.assert_called_once_with({"app_version": "v1"}, "v1", False, "60m")
+        m_create.assert_called_once_with(
+            params={"app_version": "v1"},
+            app_version="v1",
+            save_full_model_results=False,
+            results_viewable=False,
+            timeout="60m",
+        )
         m_print.assert_called_once_with("Model run started: id")
 
     def test_just_params_file_without_app_version_in_params(self, mocker):
@@ -135,6 +142,7 @@ class TestRun:
         args = Mock()
         args.params = "file.json"
         args.save_full_model_results = False
+        args.results_viewable = False
         args.timeout = "60m"
         args.app_version = None
         args.dataset = None
@@ -151,7 +159,13 @@ class TestRun:
 
         # assert
         m_open.assert_called_once_with("file.json", "r", encoding="UTF-8")
-        m_create.assert_called_once_with({"app_version": "dev"}, "dev", False, "60m")
+        m_create.assert_called_once_with(
+            params={"app_version": "dev"},
+            app_version="dev",
+            save_full_model_results=False,
+            results_viewable=False,
+            timeout="60m",
+        )
         m_print.assert_called_once_with("Model run started: id")
 
     def test_setting_app_version(self, mocker):
@@ -159,6 +173,7 @@ class TestRun:
         args = Mock()
         args.params = "file.json"
         args.save_full_model_results = False
+        args.results_viewable = False
         args.timeout = "60m"
         args.app_version = "v2"
         args.dataset = None
@@ -175,7 +190,13 @@ class TestRun:
 
         # assert
         m_open.assert_called_once_with("file.json", "r", encoding="UTF-8")
-        m_create.assert_called_once_with({"app_version": "v2"}, "v2", False, "60m")
+        m_create.assert_called_once_with(
+            params={"app_version": "v2"},
+            app_version="v2",
+            save_full_model_results=False,
+            results_viewable=False,
+            timeout="60m",
+        )
         m_print.assert_called_once_with("Model run started: id")
 
     def test_setting_dataset(self, mocker):
@@ -183,6 +204,7 @@ class TestRun:
         args = Mock()
         args.params = "file.json"
         args.save_full_model_results = False
+        args.results_viewable = False
         args.timeout = "60m"
         args.app_version = None
         args.dataset = "dataset"
@@ -200,7 +222,11 @@ class TestRun:
         # assert
         m_open.assert_called_once_with("file.json", "r", encoding="UTF-8")
         m_create.assert_called_once_with(
-            {"app_version": "dev", "dataset": "dataset"}, "dev", False, "60m"
+            params={"app_version": "dev", "dataset": "dataset"},
+            app_version="dev",
+            save_full_model_results=False,
+            results_viewable=False,
+            timeout="60m",
         )
         m_print.assert_called_once_with("Model run started: id")
 

@@ -25,7 +25,7 @@ def upload_params_to_blob(
         params_str (str): The parameters as a JSON string.
         metadata (dict[str, Any]): The metadata of the model run.
         credential (TokenCredential): Credential for authenticating with Azure.
-        config (Config): Configuration object, defaults to creating from envvars.
+        config (Config): Configuration object.
     """
     client = BlobServiceClient(config.blob_storage_endpoint, credential)
     container = client.get_container_client("queue")
@@ -44,7 +44,7 @@ def add_table_storage_entry(
     results_viewable: bool,
     credential: TokenCredential,
     config: Config,
-):
+) -> None:
     """Add model run to table storage.
 
     Args:

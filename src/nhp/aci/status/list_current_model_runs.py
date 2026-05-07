@@ -1,5 +1,7 @@
 """List current model runs in Azure Container Instances."""
 
+from typing import Any
+
 from azure.core.credentials import TokenCredential
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.containerinstance import ContainerInstanceManagementClient
@@ -11,7 +13,7 @@ from nhp.aci.status.helpers import get_container_group_current_state
 def get_current_model_runs(
     credential: TokenCredential | None = None,
     config: Config | None = None,
-) -> dict:
+) -> dict[str, Any]:
     """Get the status of all current model runs.
 
     Args:

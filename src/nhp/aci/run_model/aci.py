@@ -66,9 +66,8 @@ def create_and_start_container(
         model_run_id (str): The ID of the model run.
         save_full_model_results (bool): Whether to save the full model results.
         timeout (str): The timeout for the container.
-        credential (TokenCredential): Credential for authenticating with Azure,
-            defaults to DefaultAzureCredential().
-        config (Config): Configuration object, defaults to creating from envvars.
+        credential (TokenCredential): Credential for authenticating with Azure.
+        config (Config): Configuration object.
     """
     container_name = metadata["id"]
     tag = metadata["app_version"]

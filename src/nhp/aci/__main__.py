@@ -39,6 +39,7 @@ def _arg_parser() -> argparse.ArgumentParser:
     run_parser.add_argument(
         "--save-full-model-results", action="store_true", help="Save full model results"
     )
+    run_parser.add_argument("--results-viewable", action="store_true", help="Make results viewable")
     run_parser.add_argument("--timeout", default="60m", help="Container timeout (default: 60m)")
 
     # Status command
@@ -73,10 +74,11 @@ def _run(args: argparse.Namespace) -> None:
 
     # create the model run
     metadata = create_model_run(
-        params,
-        app_version,
-        args.save_full_model_results,
-        args.timeout,
+        params=params,
+        app_version=app_version,
+        save_full_model_results=args.save_full_model_results,
+        results_viewable=args.results_viewable,
+        timeout=args.timeout,
     )
     print(f"Model run started: {metadata['id']}")
 
