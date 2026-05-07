@@ -3,6 +3,7 @@
 import logging
 import re
 from typing import Any
+from uuid import UUID
 
 from azure.core.credentials import TokenCredential
 from azure.identity import DefaultAzureCredential
@@ -26,20 +27,23 @@ logger = logging.getLogger(__name__)
 
 
 def _build_container_command(
-    model_id: str, tag: str, save_full_model_results: bool, timeout: str = "60m"
+    container_name: str,
+    model_run_id: str,
+    save_full_model_results: bool,
+    timeout: str = "60m",
 ) -> list[str]:
-    # before v4.0, the containers are started using /opt/docker_run.py
-    match = re.match(r"^v(\d+)\.(\d)", tag)
-    before_v4 = match and int(match.group(1)) < 4  # noqa: PLR2004
+    command = [
+        "timeout",
+        "-s",
+        "SIGKILL",
+        timeout,
+        "/app/.venv/bin/python",
+        "-m",
+        "nhp.docker",
+        f"{container_name}.json",
+        model_run_id,
+    ]
 
-    command = ["timeout", "-s", "SIGKILL", timeout]
-
-    if before_v4:
-        command.append("/opt/docker_run.py")
-    else:
-        command += ["/app/.venv/bin/python", "-m", "nhp.docker"]
-
-    command.append(f"{model_id}.json")
     if save_full_model_results:
         command.append("--save-full-model-results")
 
@@ -48,6 +52,7 @@ def _build_container_command(
 
 def create_and_start_container(
     metadata: dict[str, Any],
+    model_run_id: str,
     save_full_model_results: bool,
     timeout: str,
     credential: TokenCredential,
@@ -57,14 +62,18 @@ def create_and_start_container(
 
     Args:
         metadata (dict[str, Any]): The model metadata.
+        model_run_id (str): The ID of the model run.
         save_full_model_results (bool): Whether to save the full model results.
         timeout (str): The timeout for the container.
         credential (TokenCredential): Credential for authenticating with Azure,
             defaults to DefaultAzureCredential().
         config (Config): Configuration object, defaults to creating from envvars.
     """
-    model_id = metadata["id"]
+    container_name = metadata["id"]
     tag = metadata["app_version"]
+
+    if re.match(r"^v[0-4]\.", tag):
+        raise ValueError(f"App version {tag} is not supported. Please use a version >= v5.0.")
 
     client = ContainerInstanceManagementClient(credential, config.subscription_id)
 
@@ -73,10 +82,12 @@ def create_and_start_container(
     )
     container_resource_requirements = ResourceRequirements(requests=container_resource_requests)
 
-    command = _build_container_command(model_id, tag, save_full_model_results, timeout)
+    command = _build_container_command(
+        container_name, model_run_id, save_full_model_results, timeout
+    )
 
     container = Container(
-        name=model_id,
+        name=container_name,
         image=f"{config.container_image}:{tag}",
         resources=container_resource_requirements,
         environment_variables=[
@@ -115,5 +126,7 @@ def create_and_start_container(
         tags={"project": "nhp"},
     )
 
-    client.container_groups.begin_create_or_update(config.resource_group, f"{model_id}", cgroup)
+    client.container_groups.begin_create_or_update(
+        config.resource_group, f"{container_name}", cgroup
+    )
     logger.info("container created with command: %s", " ".join(command))

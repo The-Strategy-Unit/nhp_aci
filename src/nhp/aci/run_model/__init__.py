@@ -65,5 +65,8 @@ def create_model_run(
     add_table_storage_entry(metadata, model_run_id, results_viewable, credential, config)
 
     # 4. create a new container instance
+    create_and_start_container(
+        metadata, model_run_id, save_full_model_results, timeout, credential, config
+    )
 
     return metadata
