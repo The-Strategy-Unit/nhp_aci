@@ -48,25 +48,22 @@ def create_model_run(
         config = Config.create_from_envvars()
     # 1. prepare params and metadata
     params_str, metadata = prepare_params(params, app_version)
-    model_run_id = str(uuid.uuid4())
 
     logger.info(
         "received request for model run %s (%s) from user %s [id=%s]",
-        metadata["id"],
+        metadata["container_group_name"],
         metadata["app_version"],
         metadata["user"],
-        model_run_id,
+        metadata["model_run_id"],
     )
 
     # 2. upload params to blob storage
     upload_params_to_blob(params_str, metadata, credential, config)
 
     # 3. add entry in table storage
-    add_table_storage_entry(metadata, model_run_id, results_viewable, credential, config)
+    add_table_storage_entry(metadata, results_viewable, credential, config)
 
     # 4. create a new container instance
-    create_and_start_container(
-        metadata, model_run_id, save_full_model_results, timeout, credential, config
-    )
+    create_and_start_container(metadata, save_full_model_results, timeout, credential, config)
 
     return metadata

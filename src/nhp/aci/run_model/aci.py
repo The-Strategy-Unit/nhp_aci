@@ -53,7 +53,6 @@ def _build_container_command(
 
 def create_and_start_container(
     metadata: dict[str, Any],
-    model_run_id: str,
     save_full_model_results: bool,
     timeout: str,
     credential: TokenCredential,
@@ -63,13 +62,12 @@ def create_and_start_container(
 
     Args:
         metadata (dict[str, Any]): The model metadata.
-        model_run_id (str): The ID of the model run.
         save_full_model_results (bool): Whether to save the full model results.
         timeout (str): The timeout for the container.
         credential (TokenCredential): Credential for authenticating with Azure.
         config (Config): Configuration object.
     """
-    container_name = metadata["id"]
+    container_name = metadata["container_group_name"]
     tag = metadata["app_version"]
 
     if re.match(r"^v[0-4]\.", tag):
@@ -83,7 +81,7 @@ def create_and_start_container(
     container_resource_requirements = ResourceRequirements(requests=container_resource_requests)
 
     command = _build_container_command(
-        container_name, model_run_id, save_full_model_results, timeout
+        container_name, metadata["model_run_id"], save_full_model_results, timeout
     )
 
     container = Container(

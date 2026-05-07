@@ -29,7 +29,11 @@ def test__build_container_command(model_run_id):
 
 def test_create_and_start_container_raises_for_unsupported_version(mocker, config):
     # arrange
-    metadata = {"id": "id", "app_version": "v4.0"}
+    metadata = {
+        "container_group_name": "container-group-name",
+        "app_version": "v4.0",
+        "model_run_id": "model-run-id",
+    }
     m_container_instance_management_client = mocker.patch(
         "nhp.aci.run_model.aci.ContainerInstanceManagementClient"
     )
@@ -38,7 +42,6 @@ def test_create_and_start_container_raises_for_unsupported_version(mocker, confi
     with pytest.raises(ValueError, match=r"version >= v5.0"):
         create_and_start_container(
             metadata,
-            "model-run-id",
             True,
             "30m",
             "credential",  # ty: ignore[invalid-argument-type]
@@ -72,7 +75,11 @@ def test__build_container_command_full_model_results():
 
 def test_create_and_start_container_with_log_analytics(mocker, config):
     # arrange
-    metadata = {"id": "id", "app_version": "v5.0"}
+    metadata = {
+        "container_group_name": "container-group-name",
+        "app_version": "v5.0",
+        "model_run_id": "model-run-id",
+    }
     m_container_instance_management_client = mocker.patch(
         "nhp.aci.run_model.aci.ContainerInstanceManagementClient"
     )
@@ -111,7 +118,6 @@ def test_create_and_start_container_with_log_analytics(mocker, config):
     # act
     create_and_start_container(
         metadata,
-        "model-run-id",
         True,
         "30m",
         "credential",  # ty: ignore[invalid-argument-type]
@@ -122,9 +128,11 @@ def test_create_and_start_container_with_log_analytics(mocker, config):
     m_container_instance_management_client.assert_called_once_with("credential", "subscription_id")
     m_resource_requests.assert_called_once_with(memory_in_gb=4.0, cpu=2)
     m_resource_requirements.assert_called_once_with(requests="resource_requests")
-    m_build_container_command.assert_called_once_with("id", "model-run-id", True, "30m")
+    m_build_container_command.assert_called_once_with(
+        "container-group-name", "model-run-id", True, "30m"
+    )
     m_container.assert_called_once_with(
-        name="id",
+        name="container-group-name",
         image="container_image:v5.0",
         resources="resource_requirements",
         environment_variables=["env_var"],
@@ -154,7 +162,7 @@ def test_create_and_start_container_with_log_analytics(mocker, config):
         tags={"project": "nhp"},
     )
     m_container_instance_management_client().container_groups.begin_create_or_update.assert_called_once_with(
-        "resource_group", "id", "container_group"
+        "resource_group", "container-group-name", "container_group"
     )
     m_user_assigned_identities.assert_called_once_with()
 
@@ -163,7 +171,11 @@ def test_create_and_start_container_without_log_analytics(mocker, config):
     # arrange
     config.log_analytics_workspace_id = None
 
-    metadata = {"id": "id", "app_version": "v5.0"}
+    metadata = {
+        "container_group_name": "container-group-name",
+        "app_version": "v5.0",
+        "model_run_id": "model-run-id",
+    }
     m_container_instance_management_client = mocker.patch(
         "nhp.aci.run_model.aci.ContainerInstanceManagementClient"
     )
@@ -202,7 +214,6 @@ def test_create_and_start_container_without_log_analytics(mocker, config):
     # act
     create_and_start_container(
         metadata,
-        "model-run-id",
         True,
         "30m",
         "credential",  # ty: ignore[invalid-argument-type]
@@ -213,9 +224,11 @@ def test_create_and_start_container_without_log_analytics(mocker, config):
     m_container_instance_management_client.assert_called_once_with("credential", "subscription_id")
     m_resource_requests.assert_called_once_with(memory_in_gb=4.0, cpu=2)
     m_resource_requirements.assert_called_once_with(requests="resource_requests")
-    m_build_container_command.assert_called_once_with("id", "model-run-id", True, "30m")
+    m_build_container_command.assert_called_once_with(
+        "container-group-name", "model-run-id", True, "30m"
+    )
     m_container.assert_called_once_with(
-        name="id",
+        name="container-group-name",
         image="container_image:v5.0",
         resources="resource_requirements",
         environment_variables=["env_var"],
@@ -240,6 +253,6 @@ def test_create_and_start_container_without_log_analytics(mocker, config):
         tags={"project": "nhp"},
     )
     m_container_instance_management_client().container_groups.begin_create_or_update.assert_called_once_with(
-        "resource_group", "id", "container_group"
+        "resource_group", "container-group-name", "container_group"
     )
     m_user_assigned_identities.assert_called_once_with()

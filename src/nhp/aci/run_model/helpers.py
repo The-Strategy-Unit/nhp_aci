@@ -3,6 +3,7 @@
 import json
 import logging
 import re
+import uuid
 import zlib
 from datetime import datetime, timezone
 from typing import Any
@@ -13,18 +14,18 @@ from jsonschema import validate
 logger = logging.getLogger(__name__)
 
 
-def generate_id(params: str, metadata: dict[str, Any]) -> str:
-    """Generate an ID for the model run.
+def generate_container_group_name(params: str, metadata: dict[str, Any]) -> str:
+    """Generate a container group name for the model run.
 
-    Uses the dataset and the scenario, and a CRC32 hash of the parameters to generate an ID for the
-    model run.
+    Uses the dataset and the scenario, and a CRC32 hash of the parameters to generate a name for the
+    container group.
 
     Args:
         params (str): The parameters (as a JSON string) for the model run.
         metadata (dict[str, Any]): The metadata for the model run.
 
     Returns:
-        str: An ID for the model run.
+        str: A name for the container group.
     """
     crc32 = f"{zlib.crc32(params.encode('utf-8')):x}"
     scenario_sanitized = re.sub("[^a-z0-9]+", "-", metadata["scenario"])
@@ -57,10 +58,6 @@ def prepare_params(params: dict[str, Any], app_version: str) -> tuple[str, dict[
     # check that the params are valid according to the schema
     validate_params(params, app_version)
 
-    # the id paramerter used to be submitted, but is now generated here to prevent issues with the
-    # containers being created with invalid ids.
-    if "id" in params:
-        params.pop("id")
     # force the create_datetime to be the current time, do not accept values from the user
     params["create_datetime"] = f"{datetime.now(timezone.utc):%Y%m%d_%H%M%S}"
 
@@ -71,8 +68,9 @@ def prepare_params(params: dict[str, Any], app_version: str) -> tuple[str, dict[
 
     # convert params to a JSON string
     params_str = json.dumps(params)
-    # generate the id based on the params and metadata
-    metadata["id"] = generate_id(params_str, metadata)
+    # generate the container group name based on the params and metadata
+    metadata["container_group_name"] = generate_container_group_name(params_str, metadata)
+    metadata["model_run_id"] = str(uuid.uuid4())
 
     return params_str, metadata
 

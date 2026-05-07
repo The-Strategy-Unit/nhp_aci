@@ -40,7 +40,6 @@ def upload_params_to_blob(
 
 def add_table_storage_entry(
     metadata: dict[str, Any],
-    model_run_id: str,
     results_viewable: bool,
     credential: TokenCredential,
     config: Config,
@@ -49,11 +48,12 @@ def add_table_storage_entry(
 
     Args:
         metadata (dict[str, Any]): The metadata for the model run.
-        model_run_id (str): The model run ID.
         results_viewable (bool): Whether the results are viewable.
         credential (TokenCredential): Credential for authenticating with Azure.
         config (Config): Configuration object.
     """
+    metadata = metadata.copy()
+    model_run_id = metadata["model_run_id"]
     table_client = TableClient(config.table_storage_endpoint, "modelruns", credential=credential)
     entity = {
         "PartitionKey": metadata["dataset"],

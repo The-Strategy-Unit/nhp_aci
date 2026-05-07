@@ -71,12 +71,17 @@ def test_upload_params_to_blob_stringifies_metadata_values(mocker, config):
 def test_add_table_storage_entry(mocker, config):
     # arrange
     m_table_client = mocker.patch("nhp.aci.run_model.storage.TableClient")
-    metadata = {"id": "id", "dataset": "dataset", "scenario": "scenario", "app_version": "v5.0"}
+    metadata = {
+        "id": "id",
+        "dataset": "dataset",
+        "scenario": "scenario",
+        "app_version": "v5.0",
+        "model_run_id": "model-run-id",
+    }
 
     # act
     add_table_storage_entry(
         metadata,
-        "model-run-id",
         True,
         "credential",  # ty: ignore[invalid-argument-type]
         config,

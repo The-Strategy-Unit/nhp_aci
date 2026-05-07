@@ -4,7 +4,12 @@ from datetime import datetime
 
 import pytest
 
-from nhp.aci.run_model.helpers import generate_id, get_metadata, prepare_params, validate_params
+from nhp.aci.run_model.helpers import (
+    generate_container_group_name,
+    get_metadata,
+    prepare_params,
+    validate_params,
+)
 
 
 def test_generate_id():
@@ -13,7 +18,7 @@ def test_generate_id():
     metadata = {"dataset": "dataset1", "scenario": "scenario1"}
 
     # act
-    actual = generate_id(params, metadata)
+    actual = generate_container_group_name(params, metadata)
 
     # assert
     assert actual == "dataset1-scenario1-fa571aea"
@@ -48,10 +53,28 @@ def test_prepare_params(mocker, params_with_id):
     )
     m_datetime = mocker.patch("nhp.aci.run_model.helpers.datetime")
     m_datetime.now.return_value = datetime(2025, 1, 2, 3, 4, 5)
-    m_generate_id = mocker.patch(
-        "nhp.aci.run_model.helpers.generate_id", return_value="generated_id"
+    m_generate_container_group_name = mocker.patch(
+        "nhp.aci.run_model.helpers.generate_container_group_name",
+        return_value="generated-container-group-name",
     )
-    expected_params_str = '{"param1": "value1", "param2": 42, "create_datetime": "20250102_030405", "app_version": "v1.0"}'  # noqa: E501
+    m_uuid4 = mocker.patch("nhp.aci.run_model.helpers.uuid.uuid4", return_value="model-run-id")
+    expected_params = {
+        "param1": "value1",
+        "param2": 42,
+        "create_datetime": "20250102_030405",
+        "app_version": "v1.0",
+    }
+    if params_with_id:
+        expected_params["id"] = "id"
+    expected_params_str = (
+        '{"param1": "value1", "param2": 42, "create_datetime": "20250102_030405", '
+        '"app_version": "v1.0"}'
+    )
+    if params_with_id:
+        expected_params_str = (
+            '{"param1": "value1", "param2": 42, "create_datetime": "20250102_030405", '
+            '"id": "id", "app_version": "v1.0"}'
+        )
 
     # act
     actual_params, actual_metadata = prepare_params(params, app_version)
@@ -62,19 +85,14 @@ def test_prepare_params(mocker, params_with_id):
         "param1": "value1",
         "param2": 42,
         "app_version": "v1.0",
-        "id": "generated_id",
+        "container_group_name": "generated-container-group-name",
+        "model_run_id": "model-run-id",
     }
     m_validate_params.assert_called_once_with(params, app_version)
 
-    m_get_metadata.assert_called_once_with(
-        {
-            "param1": "value1",
-            "param2": 42,
-            "create_datetime": "20250102_030405",
-            "app_version": "v1.0",
-        }
-    )
-    m_generate_id.assert_called_once()
+    m_get_metadata.assert_called_once_with(expected_params)
+    m_generate_container_group_name.assert_called_once_with(expected_params_str, actual_metadata)
+    m_uuid4.assert_called_once_with()
 
 
 def test_validate_params(mocker):
