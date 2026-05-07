@@ -73,11 +73,13 @@ class TestArgParser:
             args = parser.parse_args(
                 [
                     "status",
+                    "dataset",
                     "id",
                 ]
             )
 
             assert args.command == "status"
+            assert args.dataset == "dataset"
             assert args.model_id == "id"
 
         def test_without_model_id(self):
@@ -89,6 +91,7 @@ class TestArgParser:
             )
 
             assert args.command == "status"
+            assert args.dataset is None
             assert args.model_id is None
 
     class TestClean:
@@ -97,11 +100,13 @@ class TestArgParser:
             args = parser.parse_args(
                 [
                     "clean",
+                    "dataset",
                     "id",
                 ]
             )
 
             assert args.command == "clean"
+            assert args.dataset == "dataset"
             assert args.model_id == "id"
 
 
@@ -254,6 +259,7 @@ class TestStatus:
         status = {"state": "running", "complete": complete, "model_runs": 100}
         m_status = mocker.patch("nhp.aci.__main__.get_model_run_status", return_value=status)
         args = Mock()
+        args.dataset = "dataset"
         args.model_id = "id"
         m_print = mocker.patch("builtins.print")
 
@@ -261,13 +267,14 @@ class TestStatus:
         _status(args)
 
         # assert
-        m_status.assert_called_once_with("id")
+        m_status.assert_called_once_with("dataset", "id")
         m_print.assert_called_once_with(f"id: running [{expected}/100]")
 
     def test_single_model_run_not_exists(self, mocker):
         # arrange
         m_status = mocker.patch("nhp.aci.__main__.get_model_run_status", return_value=None)
         args = Mock()
+        args.dataset = "dataset"
         args.model_id = "id"
         m_print = mocker.patch("builtins.print")
 
@@ -275,8 +282,8 @@ class TestStatus:
         _status(args)
 
         # assert
-        m_status.assert_called_once_with("id")
-        m_print.assert_called_once_with("Unknown model id: id")
+        m_status.assert_called_once_with("dataset", "id")
+        m_print.assert_called_once_with("Unknown model run id: id")
 
     def test_all_model_runs_no_runs(self, mocker):
         # arrange
@@ -358,6 +365,7 @@ class TestMain:
         # arrange
         m = mocker.patch("nhp.aci.__main__._arg_parser")
         m().parse_args().command = "clean"
+        m().parse_args().dataset = "dataset"
         m().parse_args().model_id = "id"
         m.reset_mock()
 
@@ -372,7 +380,7 @@ class TestMain:
         m.assert_called_once()
         m_run.assert_not_called()
         m_status.assert_not_called()
-        m_clean.assert_called_once_with("id")
+        m_clean.assert_called_once_with("dataset", "id")
         m().print_help.assert_not_called()
 
     def test_help(self, mocker):

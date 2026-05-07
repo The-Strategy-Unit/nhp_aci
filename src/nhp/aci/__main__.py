@@ -44,10 +44,12 @@ def _arg_parser() -> argparse.ArgumentParser:
 
     # Status command
     status_parser = subparsers.add_parser("status", help="Check container status")
+    status_parser.add_argument("dataset", nargs="?", help="Dataset")
     status_parser.add_argument("model_id", nargs="?", help="Model run ID")
 
     # Clean command
     clean_parser = subparsers.add_parser("clean", help="Clean up model runs")
+    clean_parser.add_argument("dataset", help="Dataset")
     clean_parser.add_argument("model_id", help="Model run ID")
 
     return parser
@@ -83,15 +85,16 @@ def _run(args: argparse.Namespace) -> None:
     print(f"Model run started: {metadata['id']}")
 
 
-def _status_single_model_run(model_id: str) -> None:
+def _status_single_model_run(dataset: str, model_run_id: str) -> None:
     """Print the status of a single model run.
 
     Args:
-        model_id (str): The model id to get the status of.
+        dataset (str): The dataset to get the status of.
+        model_run_id (str): The model run id to get the status of.
     """
-    status = get_model_run_status(model_id)
+    status = get_model_run_status(dataset, model_run_id)
     if not status:
-        print(f"Unknown model id: {model_id}")
+        print(f"Unknown model run id: {model_run_id}")
         return
 
     state = status["state"]
@@ -105,7 +108,7 @@ def _status_single_model_run(model_id: str) -> None:
     else:
         complete_str = f"ip: {complete['inpatients']}"
 
-    print(f"{model_id}: {state} [{complete_str}/{model_runs}]")
+    print(f"{model_run_id}: {state} [{complete_str}/{model_runs}]")
 
 
 def _status_all_model_runs() -> None:
@@ -129,7 +132,7 @@ def _status(args: argparse.Namespace) -> None:
         args (argparse.Namespace): The parsed CLI arguments.
     """
     if args.model_id:
-        _status_single_model_run(args.model_id)
+        _status_single_model_run(args.dataset, args.model_id)
     else:
         _status_all_model_runs()
 
@@ -145,7 +148,7 @@ def main() -> None:
         case "status":
             _status(args)
         case "clean":
-            clean_up_model_run(args.model_id)
+            clean_up_model_run(args.dataset, args.model_id)
         case _:
             parser.print_help()
 
