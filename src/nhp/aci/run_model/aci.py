@@ -19,6 +19,7 @@ from azure.mgmt.containerinstance.models import (
     OperatingSystemTypes,
     ResourceRequests,
     ResourceRequirements,
+    UserAssignedIdentities,
 )
 
 from nhp.aci.config import Config
@@ -100,7 +101,7 @@ def create_and_start_container(
 
     identity = ContainerGroupIdentity(
         type="UserAssigned",
-        user_assigned_identities={config.user_assigned_identity: {}},  # type: ignore
+        user_assigned_identities={config.user_assigned_identity: UserAssignedIdentities()},
     )
 
     if config.log_analytics_workspace_id:
@@ -119,7 +120,7 @@ def create_and_start_container(
         identity=identity,
         location=config.azure_location,
         containers=[container],
-        os_type=OperatingSystemTypes.linux,  # type: ignore
+        os_type=str(OperatingSystemTypes.linux),
         diagnostics=diagnostics,
         restart_policy="Never",
         subnet_ids=[subnet],

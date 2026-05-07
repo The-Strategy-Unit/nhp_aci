@@ -18,7 +18,7 @@ def test_upload_params_to_blob(mocker, config, caplog):
     caplog.set_level("INFO")
 
     # act
-    upload_params_to_blob("params", metadata, "credential", config)  # type: ignore
+    upload_params_to_blob("params", metadata, "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     m_bsc.assert_called_once_with("https://storage_account.blob.core.windows.net", "credential")
@@ -44,7 +44,7 @@ def test_upload_params_to_blob_already_exists(mocker, config, caplog):
     caplog.set_level("INFO")
 
     # act
-    upload_params_to_blob("params", metadata, "credential", config)  # type: ignore
+    upload_params_to_blob("params", metadata, "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     assert len(caplog.records) == 1
@@ -58,7 +58,7 @@ def test_upload_params_to_blob_stringifies_metadata_values(mocker, config):
     metadata = {"id": "a", "attempt": 1, "results_viewable": True}
 
     # act
-    upload_params_to_blob("params", metadata, "credential", config)  # type: ignore
+    upload_params_to_blob("params", metadata, "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     m_bsc().get_container_client().upload_blob.assert_called_once_with(
@@ -78,7 +78,7 @@ def test_add_table_storage_entry(mocker, config):
         metadata,
         "model-run-id",
         True,
-        "credential",  # type: ignore
+        "credential",  # ty: ignore[invalid-argument-type]
         config,
     )
 

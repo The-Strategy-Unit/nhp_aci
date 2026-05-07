@@ -18,14 +18,14 @@ def test_create_model_run(mocker):
     m_config = mocker.patch("nhp.aci.run_model.Config.create_from_envvars", return_value="config")
 
     # act
-    actual = create_model_run(  # type: ignore
-        "params",
+    actual = create_model_run(
+        "params",  # ty: ignore[invalid-argument-type]
         "v1.0",
         save_full_model_results=True,
         results_viewable=True,
         timeout="30m",
-        credential="credential",
-        config="config",
+        credential="credential",  # ty: ignore[invalid-argument-type]
+        config="config",  # ty: ignore[invalid-argument-type]
     )
 
     # assert
@@ -67,8 +67,8 @@ def test_create_model_run_creates_credential_and_config_if_none(mocker):
     m_config = mocker.patch("nhp.aci.run_model.Config.create_from_envvars", return_value="config")
 
     # act
-    actual = create_model_run(  # type: ignore
-        "params",
+    actual = create_model_run(
+        "params",  # ty: ignore[invalid-argument-type]
         "v1.0",
         save_full_model_results=True,
         results_viewable=True,

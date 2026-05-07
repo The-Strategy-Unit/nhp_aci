@@ -29,7 +29,7 @@ def test_get_current_model_runs(mocker, config):
     m_cimc.reset_mock()
 
     # act
-    actual = get_current_model_runs("cred", config)  # type: ignore
+    actual = get_current_model_runs("cred", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     assert actual == {"a": "state", "b": "state"}

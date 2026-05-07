@@ -35,13 +35,13 @@ def test_create_and_start_container_raises_for_unsupported_version(mocker, confi
     )
 
     # act
-    with pytest.raises(ValueError, match="version >= v5.0"):
+    with pytest.raises(ValueError, match=r"version >= v5.0"):
         create_and_start_container(
             metadata,
             "model-run-id",
             True,
             "30m",
-            "credential",  # type: ignore
+            "credential",  # ty: ignore[invalid-argument-type]
             config,
         )
 
@@ -104,6 +104,9 @@ def test_create_and_start_container_with_log_analytics(mocker, config):
     m_container_group = mocker.patch(
         "nhp.aci.run_model.aci.ContainerGroup", return_value="container_group"
     )
+    m_user_assigned_identities = mocker.patch(
+        "nhp.aci.run_model.aci.UserAssignedIdentities", return_value="user_assigned_identities"
+    )
 
     # act
     create_and_start_container(
@@ -111,7 +114,7 @@ def test_create_and_start_container_with_log_analytics(mocker, config):
         "model-run-id",
         True,
         "30m",
-        "credential",  # type: ignore
+        "credential",  # ty: ignore[invalid-argument-type]
         config,
     )
 
@@ -130,7 +133,8 @@ def test_create_and_start_container_with_log_analytics(mocker, config):
     m_environment_variable.assert_called_once_with(name="STORAGE_ACCOUNT", value="storage_account")
     m_container_group_subnet_id.assert_called_once_with(id="subnet_id", name="subnet_name")
     m_container_group_identity.assert_called_once_with(
-        type="UserAssigned", user_assigned_identities={"user_assigned_identity": {}}
+        type="UserAssigned",
+        user_assigned_identities={"user_assigned_identity": "user_assigned_identities"},
     )
     m_container_group_diagnostics.assert_called_once_with(log_analytics="log_analytics")
     m_log_analtics.assert_called_once_with(
@@ -143,7 +147,7 @@ def test_create_and_start_container_with_log_analytics(mocker, config):
         identity="identity",
         location="azure_location",
         containers=["container"],
-        os_type=OperatingSystemTypes.linux,
+        os_type=str(OperatingSystemTypes.linux),
         diagnostics="diagnostics",
         restart_policy="Never",
         subnet_ids=["subnet"],
@@ -152,6 +156,7 @@ def test_create_and_start_container_with_log_analytics(mocker, config):
     m_container_instance_management_client().container_groups.begin_create_or_update.assert_called_once_with(
         "resource_group", "id", "container_group"
     )
+    m_user_assigned_identities.assert_called_once_with()
 
 
 def test_create_and_start_container_without_log_analytics(mocker, config):
@@ -190,6 +195,9 @@ def test_create_and_start_container_without_log_analytics(mocker, config):
     m_container_group = mocker.patch(
         "nhp.aci.run_model.aci.ContainerGroup", return_value="container_group"
     )
+    m_user_assigned_identities = mocker.patch(
+        "nhp.aci.run_model.aci.UserAssignedIdentities", return_value="user_assigned_identities"
+    )
 
     # act
     create_and_start_container(
@@ -197,7 +205,7 @@ def test_create_and_start_container_without_log_analytics(mocker, config):
         "model-run-id",
         True,
         "30m",
-        "credential",  # type: ignore
+        "credential",  # ty: ignore[invalid-argument-type]
         config,
     )
 
@@ -216,7 +224,8 @@ def test_create_and_start_container_without_log_analytics(mocker, config):
     m_environment_variable.assert_called_once_with(name="STORAGE_ACCOUNT", value="storage_account")
     m_container_group_subnet_id.assert_called_once_with(id="subnet_id", name="subnet_name")
     m_container_group_identity.assert_called_once_with(
-        type="UserAssigned", user_assigned_identities={"user_assigned_identity": {}}
+        type="UserAssigned",
+        user_assigned_identities={"user_assigned_identity": "user_assigned_identities"},
     )
     m_container_group_diagnostics.assert_not_called()
     m_log_analtics.assert_not_called()
@@ -224,7 +233,7 @@ def test_create_and_start_container_without_log_analytics(mocker, config):
         identity="identity",
         location="azure_location",
         containers=["container"],
-        os_type=OperatingSystemTypes.linux,
+        os_type=str(OperatingSystemTypes.linux),
         diagnostics=None,
         restart_policy="Never",
         subnet_ids=["subnet"],
@@ -233,3 +242,4 @@ def test_create_and_start_container_without_log_analytics(mocker, config):
     m_container_instance_management_client().container_groups.begin_create_or_update.assert_called_once_with(
         "resource_group", "id", "container_group"
     )
+    m_user_assigned_identities.assert_called_once_with()

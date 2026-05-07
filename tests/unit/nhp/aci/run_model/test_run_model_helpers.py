@@ -87,7 +87,7 @@ def test_validate_params(mocker):
     m_get.reset_mock()
 
     # act
-    validate_params("params", "dev")  # type: ignore
+    validate_params("params", "dev")  # ty: ignore[invalid-argument-type]
 
     # assert
     m_get.assert_called_once_with(
@@ -106,7 +106,7 @@ def test_validate_params_no_schema(mocker):
     m_get.reset_mock()
 
     # act
-    validate_params("params", "dev")  # type: ignore
+    validate_params("params", "dev")  # ty: ignore[invalid-argument-type]
 
     # assert
     m_validate.assert_not_called()

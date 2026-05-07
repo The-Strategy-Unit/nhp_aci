@@ -22,7 +22,7 @@ def test__get_queue_metadata(mocker, config):
     m_bsc.reset_mock()
 
     # act
-    actual = _get_queue_metadata("name", "credential", config)  # type: ignore
+    actual = _get_queue_metadata("name", "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     assert actual == {
@@ -45,7 +45,7 @@ def test__get_queue_metadata_blob_missing(mocker, config):
     m_bsc.reset_mock()
 
     # act
-    actual = _get_queue_metadata("name", "credential", config)  # type: ignore
+    actual = _get_queue_metadata("name", "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     assert actual == {}
@@ -62,7 +62,7 @@ def test__get_queue_metadata_metadata_progress_missing(mocker, config):
     m_bsc.reset_mock()
 
     # act
-    actual = _get_queue_metadata("name", "credential", config)  # type: ignore
+    actual = _get_queue_metadata("name", "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     assert actual == {
@@ -79,7 +79,7 @@ def test__get_aci_status(mocker, config):
     )
 
     # act
-    actual = _get_aci_status("name", "credential", config)  # type: ignore
+    actual = _get_aci_status("name", "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     assert actual == "state"
@@ -108,7 +108,7 @@ def test_get_model_run_status(mocker, config):
     )
 
     # act
-    actual = get_model_run_status("name", "credential", config)  # type: ignore
+    actual = get_model_run_status("name", "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     assert actual == {
@@ -174,7 +174,7 @@ def test_get_model_run_status_resource_not_found_with_status(mocker, config):
     )
 
     # act
-    actual = get_model_run_status("name", "credential", config)  # type: ignore
+    actual = get_model_run_status("name", "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     assert actual == {
@@ -196,7 +196,7 @@ def test_get_model_run_status_resource_not_found_without_status(mocker, config):
     )
 
     # act
-    actual = get_model_run_status("name", "credential", config)  # type: ignore
+    actual = get_model_run_status("name", "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     assert actual is None
