@@ -30,10 +30,13 @@ def upload_params_to_blob(
     client = BlobServiceClient(config.blob_storage_endpoint, credential)
     container = client.get_container_client("queue")
     try:
-        container.upload_blob(f"{metadata['id']}.json", params_str, metadata=metadata)
+        container.upload_blob(
+            f"{metadata['id']}.json", params_str, metadata={k: str(v) for k, v in metadata.items()}
+        )
         logger.info("params uploaded to queue")
     except ResourceExistsError:
         logger.warning("file already exists, skipping upload")
+
 
 def add_table_storage_entry(
     metadata: dict[str, Any],

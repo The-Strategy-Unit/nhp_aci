@@ -32,7 +32,7 @@ def generate_id(params: str, metadata: dict[str, Any]) -> str:
     return (f"{metadata['dataset']}-{scenario_sanitized}"[0:54] + "-" + crc32).lower()
 
 
-def get_metadata(params: dict) -> dict:
+def get_metadata(params: dict[str, Any]) -> dict[str, Any]:
     """Extract metadata from the parameters dictionary.
 
     Args:
@@ -41,11 +41,7 @@ def get_metadata(params: dict) -> dict:
     Returns:
         dict[str, Any]: A dictionary with metadata extracted from the parameters.
     """
-    metadata = {
-        k: str(v) for k, v in params.items() if not isinstance(v, dict) and not isinstance(v, list)
-    }
-
-    return metadata
+    return {k: v for k, v in params.items() if not isinstance(v, dict) and not isinstance(v, list)}
 
 
 def prepare_params(params: dict[str, Any], app_version: str) -> tuple[str, dict[str, Any]]:
