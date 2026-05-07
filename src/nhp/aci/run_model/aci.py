@@ -2,6 +2,7 @@
 
 import logging
 import re
+from typing import Any
 
 from azure.core.credentials import TokenCredential
 from azure.identity import DefaultAzureCredential
@@ -46,7 +47,7 @@ def _build_container_command(
 
 
 def create_and_start_container(
-    metadata: dict,
+    metadata: dict[str, Any],
     save_full_model_results: bool,
     timeout: str,
     credential: TokenCredential,
@@ -54,17 +55,13 @@ def create_and_start_container(
 ) -> None:
     """Create and start a container instance for the model run.
 
-    :param metadata: the model metadata
-    :type metadata: dict
-    :param save_full_model_results: whether to save the full model results
-    :type save_full_model_results: bool
-    :param timeout: the timeout for the container
-    :type timeout: str
-    :param credential: Credential for authenticating with Azure,
-        defaults to DefaultAzureCredential()
-    :type credential: TokenCredential, optional
-    :param config: Configuration object, defaults to creating from envvars
-    :type config: Config, optional
+    Args:
+        metadata (dict[str, Any]): The model metadata.
+        save_full_model_results (bool): Whether to save the full model results.
+        timeout (str): The timeout for the container.
+        credential (TokenCredential): Credential for authenticating with Azure,
+            defaults to DefaultAzureCredential().
+        config (Config): Configuration object, defaults to creating from envvars.
     """
     model_id = metadata["id"]
     tag = metadata["app_version"]

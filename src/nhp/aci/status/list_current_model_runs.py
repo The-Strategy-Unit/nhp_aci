@@ -14,13 +14,14 @@ def get_current_model_runs(
 ) -> dict:
     """Get the status of all current model runs.
 
-    :param credential: Credential for authenticating with Azure,
-        defaults to None, and calls DefaultAzureCredential()
-    :type credential: TokenCredential, optional
-    :param config: Configuration object, defaults to  None, and calls Config.create_from_envvars()
-    :type config: Config, optional
-    :return: A dictionary with the status of all current model runs.
-    :rtype: dict
+    Args:
+        credential (TokenCredential, optional): Credential for authenticating with Azure,
+            defaults to None, and calls DefaultAzureCredential()
+        config (Config, optional): Configuration object, defaults to  None, and calls
+            Config.create_from_envvars()
+
+    Returns:
+        dict[str, Any]: A dictionary with the status of all current model runs.
     """
     if credential is None:
         credential = DefaultAzureCredential()

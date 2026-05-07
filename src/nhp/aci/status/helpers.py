@@ -1,5 +1,7 @@
 """Helpers for Azure Container Instance status operations."""
 
+from typing import Any
+
 from azure.mgmt.containerinstance import ContainerInstanceManagementClient
 
 from nhp.aci.config import Config
@@ -10,19 +12,17 @@ def get_container_group_current_state(
     client: ContainerInstanceManagementClient,
     resource_group: str,
     config: Config,
-) -> dict:
+) -> dict[str, Any]:
     """Get the state of a container group instance.
 
-    :param container_group_name: The name of the container group.
-    :type container_group_name: str
-    :param client: a ContainerInstanceManagementClient instance.
-    :type client: ContainerInstanceManagementClient
-    :param resource_group: Which resource group the container group is in.
-    :type resource_group: str
-    :param config: Configuration object
-    :type config: Config
-    :return: dictionary with the state of the container group instance.
-    :rtype: dict
+    Args:
+        container_group_name (str): The name of the container group.
+        client (ContainerInstanceManagementClient): A ContainerInstanceManagementClient instance.
+        resource_group (str): Which resource group the container group is in.
+        config (Config): Configuration object
+
+    Returns:
+        dict[str, Any]: Dictionary with the state of the container group instance.
     """
     container = client.container_groups.get(resource_group, container_group_name).containers[0]
     instance_view = container.instance_view

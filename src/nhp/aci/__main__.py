@@ -14,8 +14,9 @@ from nhp.aci.status import get_current_model_runs, get_model_run_status
 def _arg_parser() -> argparse.ArgumentParser:
     """Parse the command line arguments.
 
-    :returns: an ArgumentParser object containing the parsed command line arguments.
-    :rtype: argparse.ArgumentParser
+    Returns:
+        argparse.ArgumentParser: An ArgumentParser object containing the parsed command line
+            arguments.
     """
     parser = argparse.ArgumentParser(description="NHP Azure Container Instance CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -54,8 +55,8 @@ def _arg_parser() -> argparse.ArgumentParser:
 def _run(args: argparse.Namespace) -> None:
     """Run the model.
 
-    :param args: the parsed CLI arguments.
-    :type args: argparse.Namespace
+    Args:
+        args (argparse.Namespace): The parsed CLI arguments.
     """
     # load the params
     with open(args.params, "r", encoding="UTF-8") as f:
@@ -83,8 +84,8 @@ def _run(args: argparse.Namespace) -> None:
 def _status_single_model_run(model_id: str) -> None:
     """Print the status of a single model run.
 
-    :param model_id: The model id to get the status of.
-    :type model_id: str
+    Args:
+        model_id (str): The model id to get the status of.
     """
     status = get_model_run_status(model_id)
     if not status:
@@ -122,8 +123,8 @@ def _status_all_model_runs() -> None:
 def _status(args: argparse.Namespace) -> None:
     """Status subcommand.
 
-    :param args: the parsed CLI arguments.
-    :type args: argparse.Namespace
+    Args:
+        args (argparse.Namespace): The parsed CLI arguments.
     """
     if args.model_id:
         _status_single_model_run(args.model_id)

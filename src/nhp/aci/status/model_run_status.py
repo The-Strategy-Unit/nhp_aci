@@ -57,15 +57,15 @@ def get_model_run_status(
 ) -> dict | None:
     """Get the status of a model run by its container group name.
 
-    :param container_group_name: The name of the container group.
-    :type container_group_name: str
-    :param credential: Credential for authenticating with Azure,
-        defaults to None, and calls DefaultAzureCredential()
-    :type credential: TokenCredential, optional
-    :param config: Configuration object, defaults to  None, and calls Config.create_from_envvars()
-    :type config: Config, optional
-    :return: The status of the model run, or None if it does not exist.
-    :rtype: dict | None
+    Args:
+        container_group_name (str): The name of the container group.
+        credential (TokenCredential, optional): Credential for authenticating with Azure,
+            defaults to None, and calls DefaultAzureCredential()
+        config (Config, optional): Configuration object, defaults to  None, and calls
+            Config.create_from_envvars()
+
+    Returns:
+        dict | None: The status of the model run, or None if it does not exist.
     """
     if credential is None:
         credential = DefaultAzureCredential()
