@@ -24,7 +24,7 @@ jobs:
         activate-environment: true
 
     - name: Install dependencies
-      run: uv pip install -e ".[dev]"
+      run: uv sync
 
     - name: Generate Report
       run: uv run pytest --cov=. tests --ignore=tests --cov-branch --cov-report xml:coverage.xml
