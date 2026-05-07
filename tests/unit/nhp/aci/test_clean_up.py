@@ -12,7 +12,7 @@ def test_delete_blob_in_queue(mocker):
     print_mock = mocker.patch("builtins.print")
 
     config = Mock()
-    config.storage_endpoint = "ep"
+    config.blob_storage_endpoint = "ep"
 
     # act
     _delete_blob_in_queue("id", "credential", config)  # type: ignore
@@ -33,7 +33,7 @@ def test_delete_blob_in_queue_not_found(mocker):
     print_mock = mocker.patch("builtins.print")
 
     config = Mock()
-    config.storage_endpoint = "ep"
+    config.blob_storage_endpoint = "ep"
 
     # act
     _delete_blob_in_queue("id", "credential", config)  # type: ignore

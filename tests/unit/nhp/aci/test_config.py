@@ -81,4 +81,4 @@ def test_create_from_envvars_validates_auto_delete(mocker):
 
 def test_config_storage_endpoint(config):
     # assert
-    assert config.storage_endpoint == "https://storage_account.blob.core.windows.net"
+    assert config.blob_storage_endpoint == "https://storage_account.blob.core.windows.net"

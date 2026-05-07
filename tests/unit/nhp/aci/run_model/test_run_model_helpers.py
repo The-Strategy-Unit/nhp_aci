@@ -32,7 +32,7 @@ def test_get_metadata():
     actual = get_metadata(params)
 
     # assert
-    assert actual == {"param1": "value1", "param2": "42"}
+    assert actual == {"param1": "value1", "param2": 42}
 
 
 @pytest.mark.parametrize("params_with_id", [True, False])
@@ -44,7 +44,7 @@ def test_prepare_params(mocker, params_with_id):
     app_version = "v1.0"
     m_validate_params = mocker.patch("nhp.aci.run_model.helpers.validate_params")
     m_get_metadata = mocker.patch(
-        "nhp.aci.run_model.helpers.get_metadata", return_value={"param1": "value1", "param2": "42"}
+        "nhp.aci.run_model.helpers.get_metadata", return_value={"param1": "value1", "param2": 42}
     )
     m_datetime = mocker.patch("nhp.aci.run_model.helpers.datetime")
     m_datetime.now.return_value = datetime(2025, 1, 2, 3, 4, 5)
@@ -60,7 +60,7 @@ def test_prepare_params(mocker, params_with_id):
     assert actual_params == expected_params_str
     assert actual_metadata == {
         "param1": "value1",
-        "param2": "42",
+        "param2": 42,
         "app_version": "v1.0",
         "id": "generated_id",
     }
