@@ -119,7 +119,9 @@ def create_and_start_container(
         identity=identity,
         location=config.azure_location,
         containers=[container],
-        os_type=str(OperatingSystemTypes.linux),
+        # ContainerGroup states that the type of os_type is str, but the SDK actually requires an
+        # OperatingSystemTypes enum, so we use the enum directly here.
+        os_type=OperatingSystemTypes.linux,  # ty: ignore[invalid-argument-type]
         diagnostics=diagnostics,
         restart_policy="Never",
         subnet_ids=[subnet],
