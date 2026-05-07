@@ -24,7 +24,7 @@ def _delete_blob_in_queue(
         config (Config): Configuration object
     """
     filename = f"{model_run_id}.json"
-    bsc = BlobServiceClient(config.storage_endpoint, credential)
+    bsc = BlobServiceClient(config.blob_storage_endpoint, credential)
     cont = bsc.get_container_client("queue")
     try:
         cont.delete_blob(filename)

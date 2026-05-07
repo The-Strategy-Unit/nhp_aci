@@ -15,7 +15,7 @@ def _get_queue_metadata(
     credential: TokenCredential,
     config: Config,
 ) -> dict:
-    bsc = BlobServiceClient(config.storage_endpoint, credential)
+    bsc = BlobServiceClient(config.blob_storage_endpoint, credential)
     cc = bsc.get_container_client("queue")
     bc = cc.get_blob_client(f"{container_group_name}.json")
 
