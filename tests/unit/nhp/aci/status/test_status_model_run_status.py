@@ -4,71 +4,57 @@ from azure.core.exceptions import ResourceNotFoundError
 
 from nhp.aci.status.model_run_status import (
     _get_aci_status,
-    _get_queue_metadata,
+    _get_progress_from_ats,
     get_model_run_status,
 )
 
 
-def test__get_queue_metadata(mocker, config):
+def test__get_progress_from_ats(mocker, config):
     # arrange
-    m_bsc = mocker.patch("nhp.aci.status.model_run_status.BlobServiceClient")
-    m_cc = m_bsc().get_container_client
-    m_bc = m_cc().get_blob_client
+    m_tc = mocker.patch("nhp.aci.status.model_run_status.TableClient")
 
-    m_bc().exists.return_value = True
-    m_bc().get_blob_properties.return_value = {
-        "metadata": {"model_runs": "100", "Inpatients": "100", "Outpatients": "50", "AaE": "0"}
+    m_tc.return_value.get_entity.return_value = {
+        "progress": '{"inpatients": 100, "outpatients": 50, "aae": 0}',
+        "model_runs": 100,
+        "container_group_name": "name",
     }
-    m_bsc.reset_mock()
+
+    m_tc.reset_mock()
 
     # act
-    actual = _get_queue_metadata("name", "credential", config)  # ty: ignore[invalid-argument-type]
+    actual = _get_progress_from_ats("dataset", "id", "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     assert actual == {
         "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
         "model_runs": 100,
+        "container_group_name": "name",
     }
 
-    m_bsc.assert_called_once_with("https://storage_account.blob.core.windows.net", "credential")
-    m_cc.assert_called_once_with("queue")
-    m_bc.assert_called_once_with("name.json")
+    m_tc.assert_called_once_with(
+        endpoint="https://storage_account.table.core.windows.net",
+        credential="credential",
+        table_name="modelruns",
+    )
+    m_tc.return_value.get_entity.assert_called_once_with(partition_key="dataset", row_key="id")
 
 
-def test__get_queue_metadata_blob_missing(mocker, config):
+def test__get_progress_from_ats_not_found(mocker, config):
     # arrange
-    m_bsc = mocker.patch("nhp.aci.status.model_run_status.BlobServiceClient")
-    m_cc = m_bsc().get_container_client
-    m_bc = m_cc().get_blob_client
-
-    m_bc().exists.return_value = False
-    m_bsc.reset_mock()
+    m_tc = mocker.patch("nhp.aci.status.model_run_status.TableClient")
+    m_tc.return_value.get_entity.side_effect = ResourceNotFoundError("Not Found")
 
     # act
-    actual = _get_queue_metadata("name", "credential", config)  # ty: ignore[invalid-argument-type]
+    actual = _get_progress_from_ats("name", "id", "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     assert actual == {}
-
-
-def test__get_queue_metadata_metadata_progress_missing(mocker, config):
-    # arrange
-    m_bsc = mocker.patch("nhp.aci.status.model_run_status.BlobServiceClient")
-    m_cc = m_bsc().get_container_client
-    m_bc = m_cc().get_blob_client
-
-    m_bc().exists.return_value = True
-    m_bc().get_blob_properties.return_value = {"metadata": {"model_runs": "100"}}
-    m_bsc.reset_mock()
-
-    # act
-    actual = _get_queue_metadata("name", "credential", config)  # ty: ignore[invalid-argument-type]
-
-    # assert
-    assert actual == {
-        "complete": {"inpatients": 0, "outpatients": 0, "aae": 0},
-        "model_runs": 100,
-    }
+    m_tc.assert_called_once_with(
+        endpoint="https://storage_account.table.core.windows.net",
+        credential="credential",
+        table_name="modelruns",
+    )
+    m_tc.return_value.get_entity.assert_called_once_with(partition_key="name", row_key="id")
 
 
 def test__get_aci_status(mocker, config):
@@ -96,11 +82,12 @@ def test_get_model_run_status(mocker, config):
         "nhp.aci.status.model_run_status.Config.create_from_envvars", return_value=config
     )
 
-    m_gqm = mocker.patch(
-        "nhp.aci.status.model_run_status._get_queue_metadata",
+    m_gpa = mocker.patch(
+        "nhp.aci.status.model_run_status._get_progress_from_ats",
         return_value={
             "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
             "model_runs": 100,
+            "container_group_name": "name",
         },
     )
     m_gas = mocker.patch(
@@ -108,7 +95,7 @@ def test_get_model_run_status(mocker, config):
     )
 
     # act
-    actual = get_model_run_status("name", "credential", config)  # ty: ignore[invalid-argument-type]
+    actual = get_model_run_status("dataset", "id", "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     assert actual == {
@@ -116,7 +103,7 @@ def test_get_model_run_status(mocker, config):
         "model_runs": 100,
         "state": "running",
     }
-    m_gqm.assert_called_once_with("name", "credential", config)
+    m_gpa.assert_called_once_with("dataset", "id", "credential", config)
     m_gas.assert_called_once_with("name", "credential", config)
 
     m_cred.assert_not_called()
@@ -132,11 +119,12 @@ def test_get_model_run_status_creates_credential_and_config_if_none(mocker, conf
         "nhp.aci.status.model_run_status.Config.create_from_envvars", return_value=config
     )
 
-    m_gqm = mocker.patch(
-        "nhp.aci.status.model_run_status._get_queue_metadata",
+    m_gpa = mocker.patch(
+        "nhp.aci.status.model_run_status._get_progress_from_ats",
         return_value={
             "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
             "model_runs": 100,
+            "container_group_name": "name",
         },
     )
     m_gas = mocker.patch(
@@ -144,7 +132,7 @@ def test_get_model_run_status_creates_credential_and_config_if_none(mocker, conf
     )
 
     # act
-    actual = get_model_run_status("name")
+    actual = get_model_run_status("dataset", "id")
 
     # assert
     assert actual == {
@@ -152,7 +140,7 @@ def test_get_model_run_status_creates_credential_and_config_if_none(mocker, conf
         "model_runs": 100,
         "state": "running",
     }
-    m_gqm.assert_called_once_with("name", "credential", config)
+    m_gpa.assert_called_once_with("dataset", "id", "credential", config)
     m_gas.assert_called_once_with("name", "credential", config)
 
     m_cred.assert_called_once_with()
@@ -162,10 +150,11 @@ def test_get_model_run_status_creates_credential_and_config_if_none(mocker, conf
 def test_get_model_run_status_resource_not_found_with_status(mocker, config):
     # arrange
     mocker.patch(
-        "nhp.aci.status.model_run_status._get_queue_metadata",
+        "nhp.aci.status.model_run_status._get_progress_from_ats",
         return_value={
             "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
             "model_runs": 100,
+            "container_group_name": "name",
         },
     )
     mocker.patch(
@@ -174,7 +163,12 @@ def test_get_model_run_status_resource_not_found_with_status(mocker, config):
     )
 
     # act
-    actual = get_model_run_status("name", "credential", config)  # ty: ignore[invalid-argument-type]
+    actual = get_model_run_status(
+        "dataset",
+        "id",
+        "credential",  # ty: ignore[invalid-argument-type]
+        config,
+    )
 
     # assert
     assert actual == {
@@ -187,7 +181,7 @@ def test_get_model_run_status_resource_not_found_with_status(mocker, config):
 def test_get_model_run_status_resource_not_found_without_status(mocker, config):
     # arrange
     mocker.patch(
-        "nhp.aci.status.model_run_status._get_queue_metadata",
+        "nhp.aci.status.model_run_status._get_progress_from_ats",
         return_value={},
     )
     mocker.patch(
@@ -196,7 +190,12 @@ def test_get_model_run_status_resource_not_found_without_status(mocker, config):
     )
 
     # act
-    actual = get_model_run_status("name", "credential", config)  # ty: ignore[invalid-argument-type]
+    actual = get_model_run_status(
+        "dataset",
+        "id",
+        "credential",  # ty: ignore[invalid-argument-type]
+        config,
+    )
 
     # assert
     assert actual is None
