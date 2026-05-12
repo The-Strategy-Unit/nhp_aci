@@ -40,6 +40,7 @@ def upload_params_to_blob(
 
 def add_table_storage_entry(
     metadata: dict[str, Any],
+    save_full_model_results: bool,
     results_viewable: bool,
     credential: TokenCredential,
     config: Config,
@@ -48,6 +49,7 @@ def add_table_storage_entry(
 
     Args:
         metadata (dict[str, Any]): The metadata for the model run.
+        save_full_model_results (bool): Whether to save the full model results.
         results_viewable (bool): Whether the results are viewable.
         credential (TokenCredential): Credential for authenticating with Azure.
         config (Config): Configuration object.
@@ -59,6 +61,7 @@ def add_table_storage_entry(
         "PartitionKey": metadata["dataset"],
         "RowKey": model_run_id,
         "status": "submitted",
+        "save_full_model_results": save_full_model_results,
         "viewable": results_viewable,
         **metadata,
     }

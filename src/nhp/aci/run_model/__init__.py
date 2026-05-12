@@ -61,7 +61,7 @@ def create_model_run(
     upload_params_to_blob(params_str, metadata, credential, config)
 
     # 3. add entry in table storage
-    add_table_storage_entry(metadata, results_viewable, credential, config)
+    add_table_storage_entry(metadata, save_full_model_results, results_viewable, credential, config)
 
     # 4. create a new container instance
     create_and_start_container(metadata, save_full_model_results, timeout, credential, config)

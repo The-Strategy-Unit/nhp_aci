@@ -26,8 +26,8 @@ def test_create_model_run(mocker):
     actual = create_model_run(
         "params",  # ty: ignore[invalid-argument-type]
         "v1.0",
-        save_full_model_results=True,
-        results_viewable=True,
+        save_full_model_results="save_full_model_results",  # ty: ignore[invalid-argument-type]
+        results_viewable="viewable",  # ty: ignore[invalid-argument-type]
         timeout="30m",
         credential="credential",  # ty: ignore[invalid-argument-type]
         config="config",  # ty: ignore[invalid-argument-type]
@@ -39,13 +39,14 @@ def test_create_model_run(mocker):
     m_upload_params_to_blob.assert_called_once_with("params_str", metadata, "credential", "config")
     m_add_table_storage_entry.assert_called_once_with(
         metadata,
-        True,
+        "save_full_model_results",
+        "viewable",
         "credential",
         "config",
     )
     m_create_and_start_container.assert_called_once_with(
         metadata,
-        True,
+        "save_full_model_results",
         "30m",
         "credential",
         "config",
@@ -88,6 +89,7 @@ def test_create_model_run_creates_credential_and_config_if_none(mocker):
     m_upload_params_to_blob.assert_called_once_with("params_str", metadata, "credential", "config")
     m_add_table_storage_entry.assert_called_once_with(
         metadata,
+        True,
         True,
         "credential",
         "config",

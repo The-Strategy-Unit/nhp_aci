@@ -82,7 +82,8 @@ def test_add_table_storage_entry(mocker, config):
     # act
     add_table_storage_entry(
         metadata,
-        True,
+        "save_full_model_results",  # ty: ignore[invalid-argument-type]
+        "viewable",  # ty: ignore[invalid-argument-type]
         "credential",  # ty: ignore[invalid-argument-type]
         config,
     )
@@ -98,7 +99,8 @@ def test_add_table_storage_entry(mocker, config):
             "PartitionKey": "dataset",
             "RowKey": "model-run-id",
             "status": "submitted",
-            "viewable": True,
+            "save_full_model_results": "save_full_model_results",
+            "viewable": "viewable",
             **metadata,
         }
     )
