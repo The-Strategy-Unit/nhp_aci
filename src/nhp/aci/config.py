@@ -59,6 +59,11 @@ class Config:
         )
 
     @property
-    def storage_endpoint(self) -> str:
-        """Creates the storage endpoint from the storage account."""
+    def blob_storage_endpoint(self) -> str:
+        """Creates the blob storage endpoint from the storage account."""
         return f"https://{self.storage_account}.blob.core.windows.net"
+
+    @property
+    def table_storage_endpoint(self) -> str:
+        """Creates the table storage endpoint from the storage account."""
+        return f"https://{self.storage_account}.table.core.windows.net"

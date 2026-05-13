@@ -12,10 +12,10 @@ def test_delete_blob_in_queue(mocker):
     print_mock = mocker.patch("builtins.print")
 
     config = Mock()
-    config.storage_endpoint = "ep"
+    config.blob_storage_endpoint = "ep"
 
     # act
-    _delete_blob_in_queue("id", "credential", config)  # type: ignore
+    _delete_blob_in_queue("id", "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     m.assert_called_once_with("ep", "credential")
@@ -33,10 +33,10 @@ def test_delete_blob_in_queue_not_found(mocker):
     print_mock = mocker.patch("builtins.print")
 
     config = Mock()
-    config.storage_endpoint = "ep"
+    config.blob_storage_endpoint = "ep"
 
     # act
-    _delete_blob_in_queue("id", "credential", config)  # type: ignore
+    _delete_blob_in_queue("id", "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     m.assert_called_once_with("ep", "credential")
@@ -56,7 +56,7 @@ def test_delete_container_group(mocker):
     config.subscription_id = "subscription_id"
 
     # act
-    _delete_container_group("id", "credential", config)  # type: ignore
+    _delete_container_group("id", "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     m.assert_called_once_with("credential", "subscription_id")
@@ -77,7 +77,7 @@ def test_delete_container_group_not_found(mocker):
     config.subscription_id = "subscription_id"
 
     # act
-    _delete_container_group("id", "credential", config)  # type: ignore
+    _delete_container_group("id", "credential", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     m.assert_called_once_with("credential", "subscription_id")
@@ -93,7 +93,7 @@ def test_clean_up_model_run(mocker):
     m2 = mocker.patch("nhp.aci.clean_up._delete_container_group")
 
     # act
-    clean_up_model_run("id", "cred", "config")  # type: ignore
+    clean_up_model_run("id", "cred", "config")  # ty: ignore[invalid-argument-type]
 
     # assert
     m1.assert_called_once_with("id", "cred", "config")

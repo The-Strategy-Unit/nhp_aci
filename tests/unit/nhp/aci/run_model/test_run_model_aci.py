@@ -6,12 +6,12 @@ from azure.mgmt.containerinstance.models import OperatingSystemTypes
 from nhp.aci.run_model.aci import _build_container_command, create_and_start_container
 
 
-@pytest.mark.parametrize("version", ["dev", "pr-123", "v4.0", "v10.0"])
-def test__build_container_command_post_v4(version):
+@pytest.mark.parametrize("model_run_id", ["model-run-id", "another-run-id"])
+def test__build_container_command(model_run_id):
     # arrange
 
     # act
-    actual = _build_container_command("id", version, False, "30m")
+    actual = _build_container_command("id", model_run_id, False, "30m")
 
     # assert
     assert actual == [
@@ -23,24 +23,40 @@ def test__build_container_command_post_v4(version):
         "-m",
         "nhp.docker",
         "id.json",
+        model_run_id,
     ]
 
 
-def test_build_container_command_pre_v4():
+def test_create_and_start_container_raises_for_unsupported_version(mocker, config):
     # arrange
+    metadata = {
+        "container_group_name": "container-group-name",
+        "app_version": "v4.0",
+        "model_run_id": "model-run-id",
+    }
+    m_container_instance_management_client = mocker.patch(
+        "nhp.aci.run_model.aci.ContainerInstanceManagementClient"
+    )
 
     # act
-    actual = _build_container_command("id", "v3.9.1", False)
+    with pytest.raises(ValueError, match=r"version >= v5.0"):
+        create_and_start_container(
+            metadata,
+            True,
+            "30m",
+            "credential",  # ty: ignore[invalid-argument-type]
+            config,
+        )
 
     # assert
-    assert actual == ["timeout", "-s", "SIGKILL", "60m", "/opt/docker_run.py", "id.json"]
+    m_container_instance_management_client.assert_not_called()
 
 
 def test__build_container_command_full_model_results():
     # arrange
 
     # act
-    actual = _build_container_command("id", "v4.0", True)
+    actual = _build_container_command("id", "model-run-id", True)
 
     # assert
     assert actual == [
@@ -52,13 +68,18 @@ def test__build_container_command_full_model_results():
         "-m",
         "nhp.docker",
         "id.json",
+        "model-run-id",
         "--save-full-model-results",
     ]
 
 
 def test_create_and_start_container_with_log_analytics(mocker, config):
     # arrange
-    metadata = {"id": "id", "app_version": "v4.0"}
+    metadata = {
+        "container_group_name": "container-group-name",
+        "app_version": "v5.0",
+        "model_run_id": "model-run-id",
+    }
     m_container_instance_management_client = mocker.patch(
         "nhp.aci.run_model.aci.ContainerInstanceManagementClient"
     )
@@ -90,18 +111,29 @@ def test_create_and_start_container_with_log_analytics(mocker, config):
     m_container_group = mocker.patch(
         "nhp.aci.run_model.aci.ContainerGroup", return_value="container_group"
     )
+    m_user_assigned_identities = mocker.patch(
+        "nhp.aci.run_model.aci.UserAssignedIdentities", return_value="user_assigned_identities"
+    )
 
     # act
-    create_and_start_container(metadata, True, "30m", "credential", config)  # type: ignore
+    create_and_start_container(
+        metadata,
+        True,
+        "30m",
+        "credential",  # ty: ignore[invalid-argument-type]
+        config,
+    )
 
     # assert
     m_container_instance_management_client.assert_called_once_with("credential", "subscription_id")
     m_resource_requests.assert_called_once_with(memory_in_gb=4.0, cpu=2)
     m_resource_requirements.assert_called_once_with(requests="resource_requests")
-    m_build_container_command.assert_called_once_with("id", "v4.0", True, "30m")
+    m_build_container_command.assert_called_once_with(
+        "container-group-name", "model-run-id", True, "30m"
+    )
     m_container.assert_called_once_with(
-        name="id",
-        image="container_image:v4.0",
+        name="container-group-name",
+        image="container_image:v5.0",
         resources="resource_requirements",
         environment_variables=["env_var"],
         command=["command"],
@@ -109,7 +141,8 @@ def test_create_and_start_container_with_log_analytics(mocker, config):
     m_environment_variable.assert_called_once_with(name="STORAGE_ACCOUNT", value="storage_account")
     m_container_group_subnet_id.assert_called_once_with(id="subnet_id", name="subnet_name")
     m_container_group_identity.assert_called_once_with(
-        type="UserAssigned", user_assigned_identities={"user_assigned_identity": {}}
+        type="UserAssigned",
+        user_assigned_identities={"user_assigned_identity": "user_assigned_identities"},
     )
     m_container_group_diagnostics.assert_called_once_with(log_analytics="log_analytics")
     m_log_analtics.assert_called_once_with(
@@ -129,15 +162,20 @@ def test_create_and_start_container_with_log_analytics(mocker, config):
         tags={"project": "nhp"},
     )
     m_container_instance_management_client().container_groups.begin_create_or_update.assert_called_once_with(
-        "resource_group", "id", "container_group"
+        "resource_group", "container-group-name", "container_group"
     )
+    m_user_assigned_identities.assert_called_once_with()
 
 
 def test_create_and_start_container_without_log_analytics(mocker, config):
     # arrange
     config.log_analytics_workspace_id = None
 
-    metadata = {"id": "id", "app_version": "v4.0"}
+    metadata = {
+        "container_group_name": "container-group-name",
+        "app_version": "v5.0",
+        "model_run_id": "model-run-id",
+    }
     m_container_instance_management_client = mocker.patch(
         "nhp.aci.run_model.aci.ContainerInstanceManagementClient"
     )
@@ -169,18 +207,29 @@ def test_create_and_start_container_without_log_analytics(mocker, config):
     m_container_group = mocker.patch(
         "nhp.aci.run_model.aci.ContainerGroup", return_value="container_group"
     )
+    m_user_assigned_identities = mocker.patch(
+        "nhp.aci.run_model.aci.UserAssignedIdentities", return_value="user_assigned_identities"
+    )
 
     # act
-    create_and_start_container(metadata, True, "30m", "credential", config)  # type: ignore
+    create_and_start_container(
+        metadata,
+        True,
+        "30m",
+        "credential",  # ty: ignore[invalid-argument-type]
+        config,
+    )
 
     # assert
     m_container_instance_management_client.assert_called_once_with("credential", "subscription_id")
     m_resource_requests.assert_called_once_with(memory_in_gb=4.0, cpu=2)
     m_resource_requirements.assert_called_once_with(requests="resource_requests")
-    m_build_container_command.assert_called_once_with("id", "v4.0", True, "30m")
+    m_build_container_command.assert_called_once_with(
+        "container-group-name", "model-run-id", True, "30m"
+    )
     m_container.assert_called_once_with(
-        name="id",
-        image="container_image:v4.0",
+        name="container-group-name",
+        image="container_image:v5.0",
         resources="resource_requirements",
         environment_variables=["env_var"],
         command=["command"],
@@ -188,7 +237,8 @@ def test_create_and_start_container_without_log_analytics(mocker, config):
     m_environment_variable.assert_called_once_with(name="STORAGE_ACCOUNT", value="storage_account")
     m_container_group_subnet_id.assert_called_once_with(id="subnet_id", name="subnet_name")
     m_container_group_identity.assert_called_once_with(
-        type="UserAssigned", user_assigned_identities={"user_assigned_identity": {}}
+        type="UserAssigned",
+        user_assigned_identities={"user_assigned_identity": "user_assigned_identities"},
     )
     m_container_group_diagnostics.assert_not_called()
     m_log_analtics.assert_not_called()
@@ -203,5 +253,6 @@ def test_create_and_start_container_without_log_analytics(mocker, config):
         tags={"project": "nhp"},
     )
     m_container_instance_management_client().container_groups.begin_create_or_update.assert_called_once_with(
-        "resource_group", "id", "container_group"
+        "resource_group", "container-group-name", "container_group"
     )
+    m_user_assigned_identities.assert_called_once_with()

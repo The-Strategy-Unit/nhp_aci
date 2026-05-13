@@ -14,8 +14,9 @@ from nhp.aci.status import get_current_model_runs, get_model_run_status
 def _arg_parser() -> argparse.ArgumentParser:
     """Parse the command line arguments.
 
-    :returns: an ArgumentParser object containing the parsed command line arguments.
-    :rtype: argparse.ArgumentParser
+    Returns:
+        argparse.ArgumentParser: An ArgumentParser object containing the parsed command line
+            arguments.
     """
     parser = argparse.ArgumentParser(description="NHP Azure Container Instance CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -38,14 +39,17 @@ def _arg_parser() -> argparse.ArgumentParser:
     run_parser.add_argument(
         "--save-full-model-results", action="store_true", help="Save full model results"
     )
+    run_parser.add_argument("--results-viewable", action="store_true", help="Make results viewable")
     run_parser.add_argument("--timeout", default="60m", help="Container timeout (default: 60m)")
 
     # Status command
     status_parser = subparsers.add_parser("status", help="Check container status")
+    status_parser.add_argument("dataset", nargs="?", help="Dataset")
     status_parser.add_argument("model_id", nargs="?", help="Model run ID")
 
     # Clean command
     clean_parser = subparsers.add_parser("clean", help="Clean up model runs")
+    clean_parser.add_argument("dataset", help="Dataset")
     clean_parser.add_argument("model_id", help="Model run ID")
 
     return parser
@@ -54,8 +58,8 @@ def _arg_parser() -> argparse.ArgumentParser:
 def _run(args: argparse.Namespace) -> None:
     """Run the model.
 
-    :param args: the parsed CLI arguments.
-    :type args: argparse.Namespace
+    Args:
+        args (argparse.Namespace): The parsed CLI arguments.
     """
     # load the params
     with open(args.params, "r", encoding="UTF-8") as f:
@@ -72,23 +76,25 @@ def _run(args: argparse.Namespace) -> None:
 
     # create the model run
     metadata = create_model_run(
-        params,
-        app_version,
-        args.save_full_model_results,
-        args.timeout,
+        params=params,
+        app_version=app_version,
+        save_full_model_results=args.save_full_model_results,
+        results_viewable=args.results_viewable,
+        timeout=args.timeout,
     )
     print(f"Model run started: {metadata['id']}")
 
 
-def _status_single_model_run(model_id: str) -> None:
+def _status_single_model_run(dataset: str, model_run_id: str) -> None:
     """Print the status of a single model run.
 
-    :param model_id: The model id to get the status of.
-    :type model_id: str
+    Args:
+        dataset (str): The dataset to get the status of.
+        model_run_id (str): The model run id to get the status of.
     """
-    status = get_model_run_status(model_id)
+    status = get_model_run_status(dataset, model_run_id)
     if not status:
-        print(f"Unknown model id: {model_id}")
+        print(f"Unknown model run id: {model_run_id}")
         return
 
     state = status["state"]
@@ -102,7 +108,7 @@ def _status_single_model_run(model_id: str) -> None:
     else:
         complete_str = f"ip: {complete['inpatients']}"
 
-    print(f"{model_id}: {state} [{complete_str}/{model_runs}]")
+    print(f"{model_run_id}: {state} [{complete_str}/{model_runs}]")
 
 
 def _status_all_model_runs() -> None:
@@ -122,11 +128,11 @@ def _status_all_model_runs() -> None:
 def _status(args: argparse.Namespace) -> None:
     """Status subcommand.
 
-    :param args: the parsed CLI arguments.
-    :type args: argparse.Namespace
+    Args:
+        args (argparse.Namespace): The parsed CLI arguments.
     """
     if args.model_id:
-        _status_single_model_run(args.model_id)
+        _status_single_model_run(args.dataset, args.model_id)
     else:
         _status_all_model_runs()
 
@@ -142,7 +148,7 @@ def main() -> None:
         case "status":
             _status(args)
         case "clean":
-            clean_up_model_run(args.model_id)
+            clean_up_model_run(args.dataset, args.model_id)
         case _:
             parser.print_help()
 

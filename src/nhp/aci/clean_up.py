@@ -18,16 +18,13 @@ def _delete_blob_in_queue(
 
     Clean up a model run by deleting the params file in the queue.
 
-    :param model_run_id: The id of the model run to delete.
-    :type model_run_id: str
-    :param credential: Credential for authenticating with Azure
-    :type credential: TokenCredential
-    :param config: Configuration object
-    :type config: Config
-    :return: A dictionary with metadata for the model run.
+    Args:
+        model_run_id (str): The id of the model run to delete.
+        credential (TokenCredential): Credential for authenticating with Azure
+        config (Config): Configuration object
     """
     filename = f"{model_run_id}.json"
-    bsc = BlobServiceClient(config.storage_endpoint, credential)
+    bsc = BlobServiceClient(config.blob_storage_endpoint, credential)
     cont = bsc.get_container_client("queue")
     try:
         cont.delete_blob(filename)
@@ -39,14 +36,12 @@ def _delete_blob_in_queue(
 def _delete_container_group(model_run_id: str, credential: TokenCredential, config: Config) -> None:
     """Delete container group.
 
-        Clean up a model run by deleting the compute resource in ACI.
+    Clean up a model run by deleting the compute resource in ACI.
 
-        :param model_run_id: The id of the model run to delete.
-        :type model_run_id: str
-    :param credential: Credential for authenticating with Azure
-        :type credential: TokenCredential
-        :param config: Configuration object
-        :type config: Config
+    Args:
+        model_run_id (str): The id of the model run to delete.
+        credential (TokenCredential): Credential for authenticating with Azure
+        config (Config): Configuration object
     """
     client = ContainerInstanceManagementClient(credential, config.subscription_id)
     try:
@@ -66,14 +61,12 @@ def clean_up_model_run(
     Clean up a model run by deleting both the params file in the queue, and the compute resource
     in ACI.
 
-    :param model_run_id: The id of the model run to delete.
-    :type model_run_id: str
-    :param credential: Credential for authenticating with Azure,
-        defaults to None, and calls DefaultAzureCredential()
-    :type credential: TokenCredential, optional
-    :param config: Configuration object, defaults to  None, and calls Config.create_from_envvars()
-    :type config: Config, optional
-    :return: A dictionary with metadata for the model run.
+    Args:
+        model_run_id (str): The id of the model run to delete.
+        credential (TokenCredential, optional): Credential for authenticating with Azure,
+            defaults to None, and calls DefaultAzureCredential()
+        config (Config, optional): Configuration object, defaults to  None, and calls
+            Config.create_from_envvars()
     """
     if credential is None:
         credential = DefaultAzureCredential()

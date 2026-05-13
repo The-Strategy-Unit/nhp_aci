@@ -1,42 +1,40 @@
 """Get the status of a model run."""
 
+import json
+from typing import Any
+
 from azure.core.credentials import TokenCredential
 from azure.core.exceptions import ResourceNotFoundError
+from azure.data.tables import TableClient
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.containerinstance import ContainerInstanceManagementClient
-from azure.storage.blob import BlobServiceClient
 
 from nhp.aci.config import Config
 from nhp.aci.status.helpers import get_container_group_current_state
 
 
-def _get_queue_metadata(
-    container_group_name: str,
+def _get_progress_from_ats(
+    dataset: str,
+    model_run_id: str,
     credential: TokenCredential,
     config: Config,
-) -> dict:
-    bsc = BlobServiceClient(config.storage_endpoint, credential)
-    cc = bsc.get_container_client("queue")
-    bc = cc.get_blob_client(f"{container_group_name}.json")
+) -> dict[str, Any]:
+    table_client = TableClient(
+        endpoint=config.table_storage_endpoint,
+        credential=credential,
+        table_name="modelruns",
+    )
 
-    if not bc.exists():
+    try:
+        entity = table_client.get_entity(partition_key=dataset, row_key=model_run_id)
+
+        return {
+            "complete": json.loads(entity["progress"]),
+            "model_runs": entity["model_runs"],
+            "container_group_name": entity["container_group_name"],
+        }
+    except ResourceNotFoundError:
         return {}
-
-    m = bc.get_blob_properties()["metadata"]
-
-    model_runs = int(m["model_runs"])
-
-    def get_progress(key):
-        return min(int(m.get(key, 0)), model_runs)
-
-    return {
-        "complete": {
-            "inpatients": get_progress("Inpatients"),
-            "outpatients": get_progress("Outpatients"),
-            "aae": get_progress("AaE"),
-        },
-        "model_runs": model_runs,
-    }
 
 
 def _get_aci_status(
@@ -51,33 +49,37 @@ def _get_aci_status(
 
 
 def get_model_run_status(
-    container_group_name: str,
+    dataset: str,
+    model_run_id: str,
     credential: TokenCredential | None = None,
     config: Config | None = None,
 ) -> dict | None:
     """Get the status of a model run by its container group name.
 
-    :param container_group_name: The name of the container group.
-    :type container_group_name: str
-    :param credential: Credential for authenticating with Azure,
-        defaults to None, and calls DefaultAzureCredential()
-    :type credential: TokenCredential, optional
-    :param config: Configuration object, defaults to  None, and calls Config.create_from_envvars()
-    :type config: Config, optional
-    :return: The status of the model run, or None if it does not exist.
-    :rtype: dict | None
+    Args:
+        dataset (str): The dataset of the model run.
+        model_run_id (str): The ID of the model run.
+        credential (TokenCredential, optional): Credential for authenticating with Azure,
+            defaults to None, and calls DefaultAzureCredential()
+        config (Config, optional): Configuration object, defaults to  None, and calls
+            Config.create_from_envvars()
+
+    Returns:
+        dict | None: The status of the model run, or None if it does not exist.
     """
     if credential is None:
         credential = DefaultAzureCredential()
     if config is None:
         config = Config.create_from_envvars()
 
-    status = _get_queue_metadata(container_group_name, credential, config)
+    status = _get_progress_from_ats(dataset, model_run_id, credential, config)
+    if not status:
+        return None
+
+    container_group_name = status.pop("container_group_name")
 
     try:
         return {**status, **_get_aci_status(container_group_name, credential, config)}
 
     except ResourceNotFoundError:
-        if status:
-            return {**status, "state": "Creating"}
-        return None
+        return {**status, "state": "Creating"}

@@ -1,5 +1,7 @@
 """List current model runs in Azure Container Instances."""
 
+from typing import Any
+
 from azure.core.credentials import TokenCredential
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.containerinstance import ContainerInstanceManagementClient
@@ -11,16 +13,17 @@ from nhp.aci.status.helpers import get_container_group_current_state
 def get_current_model_runs(
     credential: TokenCredential | None = None,
     config: Config | None = None,
-) -> dict:
+) -> dict[str, Any]:
     """Get the status of all current model runs.
 
-    :param credential: Credential for authenticating with Azure,
-        defaults to None, and calls DefaultAzureCredential()
-    :type credential: TokenCredential, optional
-    :param config: Configuration object, defaults to  None, and calls Config.create_from_envvars()
-    :type config: Config, optional
-    :return: A dictionary with the status of all current model runs.
-    :rtype: dict
+    Args:
+        credential (TokenCredential, optional): Credential for authenticating with Azure,
+            defaults to None, and calls DefaultAzureCredential()
+        config (Config, optional): Configuration object, defaults to  None, and calls
+            Config.create_from_envvars()
+
+    Returns:
+        dict[str, Any]: A dictionary with the status of all current model runs.
     """
     if credential is None:
         credential = DefaultAzureCredential()
@@ -31,8 +34,9 @@ def get_current_model_runs(
     resource_group = config.resource_group
 
     containers = {
-        i.name: get_container_group_current_state(i.name, client, resource_group, config)  # type: ignore
+        i.name: get_container_group_current_state(i.name, client, resource_group, config)
         for i in client.container_groups.list_by_resource_group(resource_group)
+        if i.name is not None
     }
 
     return containers

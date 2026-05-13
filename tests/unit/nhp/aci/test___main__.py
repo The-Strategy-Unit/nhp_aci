@@ -73,11 +73,13 @@ class TestArgParser:
             args = parser.parse_args(
                 [
                     "status",
+                    "dataset",
                     "id",
                 ]
             )
 
             assert args.command == "status"
+            assert args.dataset == "dataset"
             assert args.model_id == "id"
 
         def test_without_model_id(self):
@@ -89,6 +91,7 @@ class TestArgParser:
             )
 
             assert args.command == "status"
+            assert args.dataset is None
             assert args.model_id is None
 
     class TestClean:
@@ -97,11 +100,13 @@ class TestArgParser:
             args = parser.parse_args(
                 [
                     "clean",
+                    "dataset",
                     "id",
                 ]
             )
 
             assert args.command == "clean"
+            assert args.dataset == "dataset"
             assert args.model_id == "id"
 
 
@@ -111,6 +116,7 @@ class TestRun:
         args = Mock()
         args.params = "file.json"
         args.save_full_model_results = False
+        args.results_viewable = False
         args.timeout = "60m"
         args.app_version = None
         args.dataset = None
@@ -127,7 +133,13 @@ class TestRun:
 
         # assert
         m_open.assert_called_once_with("file.json", "r", encoding="UTF-8")
-        m_create.assert_called_once_with({"app_version": "v1"}, "v1", False, "60m")
+        m_create.assert_called_once_with(
+            params={"app_version": "v1"},
+            app_version="v1",
+            save_full_model_results=False,
+            results_viewable=False,
+            timeout="60m",
+        )
         m_print.assert_called_once_with("Model run started: id")
 
     def test_just_params_file_without_app_version_in_params(self, mocker):
@@ -135,6 +147,7 @@ class TestRun:
         args = Mock()
         args.params = "file.json"
         args.save_full_model_results = False
+        args.results_viewable = False
         args.timeout = "60m"
         args.app_version = None
         args.dataset = None
@@ -151,7 +164,13 @@ class TestRun:
 
         # assert
         m_open.assert_called_once_with("file.json", "r", encoding="UTF-8")
-        m_create.assert_called_once_with({"app_version": "dev"}, "dev", False, "60m")
+        m_create.assert_called_once_with(
+            params={"app_version": "dev"},
+            app_version="dev",
+            save_full_model_results=False,
+            results_viewable=False,
+            timeout="60m",
+        )
         m_print.assert_called_once_with("Model run started: id")
 
     def test_setting_app_version(self, mocker):
@@ -159,6 +178,7 @@ class TestRun:
         args = Mock()
         args.params = "file.json"
         args.save_full_model_results = False
+        args.results_viewable = False
         args.timeout = "60m"
         args.app_version = "v2"
         args.dataset = None
@@ -175,7 +195,13 @@ class TestRun:
 
         # assert
         m_open.assert_called_once_with("file.json", "r", encoding="UTF-8")
-        m_create.assert_called_once_with({"app_version": "v2"}, "v2", False, "60m")
+        m_create.assert_called_once_with(
+            params={"app_version": "v2"},
+            app_version="v2",
+            save_full_model_results=False,
+            results_viewable=False,
+            timeout="60m",
+        )
         m_print.assert_called_once_with("Model run started: id")
 
     def test_setting_dataset(self, mocker):
@@ -183,6 +209,7 @@ class TestRun:
         args = Mock()
         args.params = "file.json"
         args.save_full_model_results = False
+        args.results_viewable = False
         args.timeout = "60m"
         args.app_version = None
         args.dataset = "dataset"
@@ -200,7 +227,11 @@ class TestRun:
         # assert
         m_open.assert_called_once_with("file.json", "r", encoding="UTF-8")
         m_create.assert_called_once_with(
-            {"app_version": "dev", "dataset": "dataset"}, "dev", False, "60m"
+            params={"app_version": "dev", "dataset": "dataset"},
+            app_version="dev",
+            save_full_model_results=False,
+            results_viewable=False,
+            timeout="60m",
         )
         m_print.assert_called_once_with("Model run started: id")
 
@@ -228,6 +259,7 @@ class TestStatus:
         status = {"state": "running", "complete": complete, "model_runs": 100}
         m_status = mocker.patch("nhp.aci.__main__.get_model_run_status", return_value=status)
         args = Mock()
+        args.dataset = "dataset"
         args.model_id = "id"
         m_print = mocker.patch("builtins.print")
 
@@ -235,13 +267,14 @@ class TestStatus:
         _status(args)
 
         # assert
-        m_status.assert_called_once_with("id")
+        m_status.assert_called_once_with("dataset", "id")
         m_print.assert_called_once_with(f"id: running [{expected}/100]")
 
     def test_single_model_run_not_exists(self, mocker):
         # arrange
         m_status = mocker.patch("nhp.aci.__main__.get_model_run_status", return_value=None)
         args = Mock()
+        args.dataset = "dataset"
         args.model_id = "id"
         m_print = mocker.patch("builtins.print")
 
@@ -249,8 +282,8 @@ class TestStatus:
         _status(args)
 
         # assert
-        m_status.assert_called_once_with("id")
-        m_print.assert_called_once_with("Unknown model id: id")
+        m_status.assert_called_once_with("dataset", "id")
+        m_print.assert_called_once_with("Unknown model run id: id")
 
     def test_all_model_runs_no_runs(self, mocker):
         # arrange
@@ -332,6 +365,7 @@ class TestMain:
         # arrange
         m = mocker.patch("nhp.aci.__main__._arg_parser")
         m().parse_args().command = "clean"
+        m().parse_args().dataset = "dataset"
         m().parse_args().model_id = "id"
         m.reset_mock()
 
@@ -346,7 +380,7 @@ class TestMain:
         m.assert_called_once()
         m_run.assert_not_called()
         m_status.assert_not_called()
-        m_clean.assert_called_once_with("id")
+        m_clean.assert_called_once_with("dataset", "id")
         m().print_help.assert_not_called()
 
     def test_help(self, mocker):
