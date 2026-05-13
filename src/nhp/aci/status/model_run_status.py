@@ -28,11 +28,18 @@ def _get_progress_from_ats(
     try:
         entity = table_client.get_entity(partition_key=dataset, row_key=model_run_id)
 
-        return {
-            "complete": json.loads(entity["progress"]),
+        res = {
+            "complete": json.loads(entity.get("progress", "{}")),
             "model_runs": entity["model_runs"],
-            "container_group_name": entity["container_group_name"],
+            "container_group_name": None,
         }
+
+        if entity["status"] == "complete":
+            res["status"] = "complete"
+        else:
+            res["container_group_name"] = entity.get("container_group_name", None)
+
+        return res
     except ResourceNotFoundError:
         return {}
 
@@ -77,6 +84,8 @@ def get_model_run_status(
         return None
 
     container_group_name = status.pop("container_group_name")
+    if not container_group_name:
+        return status
 
     try:
         return {**status, **_get_aci_status(container_group_name, credential, config)}
