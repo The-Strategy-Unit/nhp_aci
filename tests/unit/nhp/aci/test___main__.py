@@ -285,6 +285,38 @@ class TestStatus:
         m_status.assert_called_once_with("dataset", "id")
         m_print.assert_called_once_with("Unknown model run id: id")
 
+    def test_single_model_run_complete_status(self, mocker):
+        # arrange
+        status = {"status": "complete"}
+        m_status = mocker.patch("nhp.aci.__main__.get_model_run_status", return_value=status)
+        args = Mock()
+        args.dataset = "dataset"
+        args.model_id = "id"
+        m_print = mocker.patch("builtins.print")
+
+        # act
+        _status(args)
+
+        # assert
+        m_status.assert_called_once_with("dataset", "id")
+        m_print.assert_called_once_with("id: complete")
+
+    def test_single_model_run_missing_state(self, mocker):
+        # arrange
+        status = {"status": "running"}
+        m_status = mocker.patch("nhp.aci.__main__.get_model_run_status", return_value=status)
+        args = Mock()
+        args.dataset = "dataset"
+        args.model_id = "id"
+        m_print = mocker.patch("builtins.print")
+
+        # act
+        _status(args)
+
+        # assert
+        m_status.assert_called_once_with("dataset", "id")
+        m_print.assert_called_once_with("Model run id has no state information available")
+
     def test_all_model_runs_no_runs(self, mocker):
         # arrange
         m_cmr = mocker.patch("nhp.aci.__main__.get_current_model_runs", return_value={})
