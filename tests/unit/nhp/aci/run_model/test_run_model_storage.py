@@ -13,7 +13,7 @@ def test_upload_params_to_blob(mocker, config, caplog):
     m_bsc.reset_mock()
     m_gcc.reset_mock()
 
-    metadata = {"id": "a"}
+    metadata = {"container_group_name": "a"}
 
     caplog.set_level("INFO")
 
@@ -39,7 +39,7 @@ def test_upload_params_to_blob_already_exists(mocker, config, caplog):
     m_bsc.reset_mock()
     m_gcc.reset_mock()
 
-    metadata = {"id": "a"}
+    metadata = {"container_group_name": "a"}
 
     caplog.set_level("INFO")
 
@@ -55,7 +55,7 @@ def test_upload_params_to_blob_already_exists(mocker, config, caplog):
 def test_upload_params_to_blob_stringifies_metadata_values(mocker, config):
     # arrange
     m_bsc = mocker.patch("nhp.aci.run_model.storage.BlobServiceClient")
-    metadata = {"id": "a", "attempt": 1, "results_viewable": True}
+    metadata = {"container_group_name": "a", "attempt": 1, "results_viewable": True}
 
     # act
     upload_params_to_blob("params", metadata, "credential", config)  # ty: ignore[invalid-argument-type]
@@ -64,7 +64,7 @@ def test_upload_params_to_blob_stringifies_metadata_values(mocker, config):
     m_bsc().get_container_client().upload_blob.assert_called_once_with(
         "a.json",
         "params",
-        metadata={"id": "a", "attempt": "1", "results_viewable": "True"},
+        metadata={"container_group_name": "a", "attempt": "1", "results_viewable": "True"},
     )
 
 
@@ -73,6 +73,7 @@ def test_add_table_storage_entry(mocker, config):
     m_table_client = mocker.patch("nhp.aci.run_model.storage.TableClient")
     metadata = {
         "id": "id",
+        "container_group_name": "container-group-name",
         "dataset": "dataset",
         "scenario": "scenario",
         "app_version": "v5.0",

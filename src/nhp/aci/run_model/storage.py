@@ -31,7 +31,9 @@ def upload_params_to_blob(
     container = client.get_container_client("queue")
     try:
         container.upload_blob(
-            f"{metadata['id']}.json", params_str, metadata={k: str(v) for k, v in metadata.items()}
+            f"{metadata['container_group_name']}.json",
+            params_str,
+            metadata={k: str(v) for k, v in metadata.items()},
         )
         logger.info("params uploaded to queue")
     except ResourceExistsError:
