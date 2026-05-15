@@ -33,8 +33,9 @@ def _get_progress_from_ats(
             "model_runs": entity["model_runs"],
             "container_group_name": None,
         }
+        status = entity.get("status")
 
-        if entity["status"] == "complete":
+        if status == "complete":
             res["status"] = "complete"
         else:
             res["container_group_name"] = entity.get("container_group_name", None)
