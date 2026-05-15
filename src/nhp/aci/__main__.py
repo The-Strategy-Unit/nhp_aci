@@ -97,6 +97,14 @@ def _status_single_model_run(dataset: str, model_run_id: str) -> None:
         print(f"Unknown model run id: {model_run_id}")
         return
 
+    if "status" in status and status["status"] == "complete":
+        print(f"{model_run_id}: complete")
+        return
+
+    if "state" not in status:
+        print(f"Model run {model_run_id} has no state information available")
+        return
+
     state = status["state"]
 
     complete = status["complete"]
