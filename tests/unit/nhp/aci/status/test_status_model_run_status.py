@@ -27,7 +27,12 @@ def test__get_progress_from_ats(mocker, config):
 
     # assert
     assert actual == {
+        "status": "running",
+        "status": "running",
+        "status": "running",
         "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
+        "container_group_name": "name",
+        "container_group_name": "name",
         "model_runs": 100,
         "container_group_name": "name",
     }
@@ -108,6 +113,7 @@ def test_get_model_run_status(mocker, config):
     m_gpa = mocker.patch(
         "nhp.aci.status.model_run_status._get_progress_from_ats",
         return_value={
+            "status": "running",
             "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
             "model_runs": 100,
             "container_group_name": "name",
@@ -122,8 +128,10 @@ def test_get_model_run_status(mocker, config):
 
     # assert
     assert actual == {
+        "status": "running",
         "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
         "model_runs": 100,
+        "container_group_name": "name",
         "state": "running",
     }
     m_gpa.assert_called_once_with("dataset", "id", "credential", config)
@@ -145,6 +153,7 @@ def test_get_model_run_status_creates_credential_and_config_if_none(mocker, conf
     m_gpa = mocker.patch(
         "nhp.aci.status.model_run_status._get_progress_from_ats",
         return_value={
+            "status": "running",
             "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
             "model_runs": 100,
             "container_group_name": "name",
@@ -159,8 +168,10 @@ def test_get_model_run_status_creates_credential_and_config_if_none(mocker, conf
 
     # assert
     assert actual == {
+        "status": "running",
         "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
         "model_runs": 100,
+        "container_group_name": "name",
         "state": "running",
     }
     m_gpa.assert_called_once_with("dataset", "id", "credential", config)
@@ -175,6 +186,7 @@ def test_get_model_run_status_resource_not_found_with_status(mocker, config):
     mocker.patch(
         "nhp.aci.status.model_run_status._get_progress_from_ats",
         return_value={
+            "status": "running",
             "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
             "model_runs": 100,
             "container_group_name": "name",
@@ -195,8 +207,10 @@ def test_get_model_run_status_resource_not_found_with_status(mocker, config):
 
     # assert
     assert actual == {
+        "status": "running",
         "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
         "model_runs": 100,
+        "container_group_name": "name",
         "state": "Creating",
     }
 
@@ -251,6 +265,7 @@ def test_get_model_run_status_returns_progress_without_aci_when_no_container_gro
     assert actual == {
         "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
         "model_runs": 100,
+        "container_group_name": None,
         "status": "complete",
     }
     m_gas.assert_not_called()
