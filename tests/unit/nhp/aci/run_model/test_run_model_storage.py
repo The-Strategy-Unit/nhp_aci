@@ -1,5 +1,7 @@
 """Test the storage module in the nhp.aci.run_model package."""
 
+from datetime import datetime, timezone
+
 from azure.core.exceptions import ResourceExistsError
 
 from nhp.aci.run_model.storage import add_table_storage_entry, upload_params_to_blob
@@ -78,6 +80,7 @@ def test_add_table_storage_entry(mocker, config):
         "scenario": "scenario",
         "app_version": "v5.0",
         "model_run_id": "model-run-id",
+        "create_datetime": "20260518_120000",
     }
 
     # act
@@ -95,6 +98,8 @@ def test_add_table_storage_entry(mocker, config):
         "modelruns",
         credential="credential",
     )
+
+    metadata["create_datetime"] = datetime(2026, 5, 18, 12, 0, tzinfo=timezone.utc)  # ty: ignore[invalid-assignment]
     m_table_client().create_entity.assert_called_once_with(
         {
             "PartitionKey": "dataset",
