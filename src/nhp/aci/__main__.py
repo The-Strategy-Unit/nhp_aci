@@ -82,7 +82,7 @@ def _run(args: argparse.Namespace) -> None:
         results_viewable=args.results_viewable,
         timeout=args.timeout,
     )
-    print(f"Model run started: {metadata['id']}")
+    print(f"Model run started: {metadata['model_run_id']}")
 
 
 def _status_single_model_run(dataset: str, model_run_id: str) -> None:

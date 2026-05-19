@@ -123,7 +123,9 @@ class TestRun:
 
         m_open = mock_open(read_data='{"app_version": "v1"}')
 
-        m_create = mocker.patch("nhp.aci.__main__.create_model_run", return_value={"id": "id"})
+        m_create = mocker.patch(
+            "nhp.aci.__main__.create_model_run", return_value={"model_run_id": "id"}
+        )
 
         m_print = mocker.patch("builtins.print")
 
@@ -154,7 +156,9 @@ class TestRun:
 
         m_open = mock_open(read_data="{}")
 
-        m_create = mocker.patch("nhp.aci.__main__.create_model_run", return_value={"id": "id"})
+        m_create = mocker.patch(
+            "nhp.aci.__main__.create_model_run", return_value={"model_run_id": "id"}
+        )
 
         m_print = mocker.patch("builtins.print")
 
@@ -185,7 +189,9 @@ class TestRun:
 
         m_open = mock_open(read_data="{}")
 
-        m_create = mocker.patch("nhp.aci.__main__.create_model_run", return_value={"id": "id"})
+        m_create = mocker.patch(
+            "nhp.aci.__main__.create_model_run", return_value={"model_run_id": "id"}
+        )
 
         m_print = mocker.patch("builtins.print")
 
@@ -216,7 +222,9 @@ class TestRun:
 
         m_open = mock_open(read_data="{}")
 
-        m_create = mocker.patch("nhp.aci.__main__.create_model_run", return_value={"id": "id"})
+        m_create = mocker.patch(
+            "nhp.aci.__main__.create_model_run", return_value={"model_run_id": "id"}
+        )
 
         m_print = mocker.patch("builtins.print")
 
