@@ -28,13 +28,9 @@ def test__get_progress_from_ats(mocker, config):
     # assert
     assert actual == {
         "status": "running",
-        "status": "running",
-        "status": "running",
         "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
         "container_group_name": "name",
-        "container_group_name": "name",
         "model_runs": 100,
-        "container_group_name": "name",
     }
 
     m_tc.assert_called_once_with(
