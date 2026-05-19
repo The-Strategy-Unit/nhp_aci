@@ -1,6 +1,7 @@
 """Methods for uploading model parameters to Azure Blob Storage."""
 
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 from azure.core.credentials import TokenCredential
@@ -67,4 +68,10 @@ def add_table_storage_entry(
         "viewable": results_viewable,
         **metadata,
     }
+
+    # fix datatypes
+    entity["create_datetime"] = datetime.strptime(
+        str(entity["create_datetime"]), "%Y%m%d_%H%M%S"
+    ).replace(tzinfo=timezone.utc)
+
     table_client.create_entity(entity)
