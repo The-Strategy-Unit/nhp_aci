@@ -67,6 +67,11 @@ def add_table_storage_entry(
         "save_full_model_results": save_full_model_results,
         "viewable": results_viewable,
         **metadata,
+        "progress": {
+            "Inpatients": 0,
+            "Outpatients": 0,
+            "AaE": 0,
+        },
     }
 
     # fix datatypes
