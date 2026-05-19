@@ -30,7 +30,7 @@ def _get_progress_from_ats(
 
         return {
             "status": entity.get("status", "unknown"),
-            "complete": json.loads(entity.get("progress", "{}")),
+            "complete": json.loads(entity.get("progress", "null")),
             "model_runs": entity["model_runs"],
             "container_group_name": entity.get("container_group_name", None),
         }
