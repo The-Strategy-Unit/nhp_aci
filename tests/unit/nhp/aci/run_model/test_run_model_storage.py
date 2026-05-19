@@ -108,10 +108,6 @@ def test_add_table_storage_entry(mocker, config):
             "save_full_model_results": "save_full_model_results",
             "viewable": "viewable",
             **metadata,
-            "progress": {
-                "Inpatients": 0,
-                "Outpatients": 0,
-                "AaE": 0,
-            },
+            "progress": '{"Inpatients": 0, "Outpatients": 0, "AaE": 0}',
         }
     )
