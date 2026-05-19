@@ -211,6 +211,42 @@ def test_get_model_run_status_resource_not_found_with_status(mocker, config):
     }
 
 
+def test_get_model_run_status_returns_progress_without_aci_when_no_container_group_name(
+    mocker, config
+):
+    # arrange
+    mocker.patch(
+        "nhp.aci.status.model_run_status._get_progress_from_ats",
+        return_value={
+            "status": "running",
+            "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
+            "model_runs": 100,
+            "container_group_name": None,
+        },
+    )
+    mocker.patch(
+        "nhp.aci.status.model_run_status._get_aci_status",
+        side_effect=ResourceNotFoundError("Not Found"),
+    )
+
+    # act
+    actual = get_model_run_status(
+        "dataset",
+        "id",
+        "credential",  # ty: ignore[invalid-argument-type]
+        config,
+    )
+
+    # assert
+    assert actual == {
+        "status": "running",
+        "complete": {"inpatients": 100, "outpatients": 50, "aae": 0},
+        "model_runs": 100,
+        "container_group_name": None,
+        "state": "Creating",
+    }
+
+
 def test_get_model_run_status_resource_not_found_without_status(mocker, config):
     # arrange
     mocker.patch(
@@ -234,9 +270,7 @@ def test_get_model_run_status_resource_not_found_without_status(mocker, config):
     assert actual is None
 
 
-def test_get_model_run_status_returns_progress_without_aci_when_no_container_group_name(
-    mocker, config
-):
+def test_get_model_run_status_returns_progress_without_aci_when_complete(mocker, config):
     # arrange
     m_gas = mocker.patch("nhp.aci.status.model_run_status._get_aci_status")
     mocker.patch(

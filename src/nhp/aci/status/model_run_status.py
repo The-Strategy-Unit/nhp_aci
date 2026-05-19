@@ -80,6 +80,9 @@ def get_model_run_status(
     if status["status"] == "complete":
         return status
 
+    if status["container_group_name"] is None:
+        return {**status, "state": "Creating"}
+
     try:
         return {**status, **_get_aci_status(status["container_group_name"], credential, config)}
 
