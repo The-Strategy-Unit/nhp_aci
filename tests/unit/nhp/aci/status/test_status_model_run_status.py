@@ -73,7 +73,7 @@ def test__get_progress_from_ats_complete_status_without_container_group_name(moc
 
     # assert
     assert actual == {
-        "complete": {},
+        "complete": None,
         "model_runs": 100,
         "container_group_name": None,
         "status": "complete",
