@@ -347,7 +347,19 @@ class TestStatus:
         # arrange
         m_cmr = mocker.patch(
             "nhp.aci.__main__.get_current_model_runs",
-            return_value={"a": {"state": "running"}, "b": {"state": "terminated"}, "c": {}},
+            return_value={
+                "a": {
+                    "dataset": "d1",
+                    "model_run_id": "id1",
+                    "aci_status": {"state": "running", "detail_status": "creating"},
+                },
+                "b": {
+                    "dataset": None,
+                    "model_run_id": None,
+                    "aci_status": {"state": "terminated"},
+                },
+                "c": {},
+            },
         )
         args = Mock()
         args.model_id = None
@@ -360,8 +372,17 @@ class TestStatus:
 
         # assert
         m_cmr.assert_called_once()
-        assert m_print.call_count == 4
-        assert print_output == ["Current Model Runs:", "a: running", "b: terminated", "c: unknown"]
+        assert m_print.call_count == 8
+        assert print_output == [
+            "Current Model Runs",
+            "------------------",
+            "",
+            "ds  | model_run_id                         | container_group_name                                            | aci_status",
+            "--- | ------------------------------------ | --------------------------------------------------------------- | ------------------",
+            "d1 | id1 | a                                                               | running [creating]",
+            "    |                                      | b                                                               | terminated [unknown]",
+            "c: No status information available",
+        ]
 
 
 class TestMain:

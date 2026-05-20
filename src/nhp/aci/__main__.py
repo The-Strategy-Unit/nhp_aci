@@ -129,10 +129,33 @@ def _status_all_model_runs() -> None:
         print("There are currently no model runs")
         return
 
-    print("Current Model Runs:")
+    print("Current Model Runs")
+    print("------------------")
+
+    print("")
+    print(
+        " | ".join(
+            ["ds ", "model_run_id".ljust(36), "container_group_name".ljust(63), "aci_status"]
+        )
+    )
+    print(" | ".join(["-" * 3, "-" * 36, "-" * 63, "-" * 18]))
+
     for k, v in current_runs.items():
-        state = v["state"] if v else "unknown"
-        print(f"{k}: {state}")
+        if not v:
+            print(f"{k}: No status information available")
+            continue
+        state = v["aci_status"]["state"]
+        detail_status = v["aci_status"].get("detail_status", "unknown")
+
+        dataset = v["dataset"] or "   "
+        model_run_id = v["model_run_id"] or " " * 36
+        container_group_name_padded = k.ljust(63)
+
+        print(
+            " | ".join(
+                [dataset, model_run_id, container_group_name_padded, f"{state} [{detail_status}]"]
+            )
+        )
 
 
 def _status(args: argparse.Namespace) -> None:
