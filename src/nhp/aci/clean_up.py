@@ -7,6 +7,7 @@ from azure.mgmt.containerinstance import ContainerInstanceManagementClient
 from azure.storage.blob import BlobServiceClient
 
 from nhp.aci.config import Config
+from nhp.aci.status.model_run_status import get_model_run_status
 
 
 def _delete_blob_in_queue(
@@ -52,6 +53,7 @@ def _delete_container_group(model_run_id: str, credential: TokenCredential, conf
 
 
 def clean_up_model_run(
+    dataset: str,
     model_run_id: str,
     credential: TokenCredential | None = None,
     config: Config | None = None,
@@ -62,6 +64,7 @@ def clean_up_model_run(
     in ACI.
 
     Args:
+        dataset (str): The dataset of the model run to delete.
         model_run_id (str): The id of the model run to delete.
         credential (TokenCredential, optional): Credential for authenticating with Azure,
             defaults to None, and calls DefaultAzureCredential()
@@ -72,5 +75,17 @@ def clean_up_model_run(
         credential = DefaultAzureCredential()
     if config is None:
         config = Config.create_from_envvars()
-    _delete_blob_in_queue(model_run_id, credential, config)
-    _delete_container_group(model_run_id, credential, config)
+
+    model_run_status = get_model_run_status(dataset, model_run_id, credential, config)
+    if not model_run_status:
+        print(f"No model run found with id {model_run_id} in dataset {dataset}, skipping cleanup")
+        return
+
+    container_group_name = model_run_status.get("container_group_name")
+
+    if not container_group_name:
+        print(f"No container group name found for model run {model_run_id}, skipping ACI cleanup")
+        return
+
+    _delete_blob_in_queue(container_group_name, credential, config)
+    _delete_container_group(container_group_name, credential, config)
