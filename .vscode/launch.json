@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: My App",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "nhp.aci",
+      "console": "integratedTerminal",
+      "args": "${command:pickArgs}"
+    }
+  ]
+}
