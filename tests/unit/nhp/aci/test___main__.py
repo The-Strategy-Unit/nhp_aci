@@ -377,10 +377,10 @@ class TestStatus:
             "Current Model Runs",
             "------------------",
             "",
-            "ds  | model_run_id                         | container_group_name                                            | aci_status",
-            "--- | ------------------------------------ | --------------------------------------------------------------- | ------------------",
-            "d1 | id1 | a                                                               | running [creating]",
-            "    |                                      | b                                                               | terminated [unknown]",
+            "ds  | model_run_id                         | container_group_name                                            | aci_status",  # noqa: E501
+            "--- | ------------------------------------ | --------------------------------------------------------------- | ------------------",  # noqa: E501
+            "d1 | id1 | a                                                               | running [creating]",  # noqa: E501
+            "    |                                      | b                                                               | terminated [unknown]",  # noqa: E501
             "c: No status information available",
         ]
 
