@@ -11,11 +11,12 @@ from nhp.aci.config import Config
 from nhp.aci.status.helpers import get_container_group_current_state
 
 
-def _get_incomplete_model_runs_from_ats() -> list[dict[str, Any]]:
-    config = Config.create_from_envvars()
+def _get_incomplete_model_runs_from_ats(
+    credential: TokenCredential, config: Config
+) -> list[dict[str, Any]]:
     table_client = TableClient(
         endpoint=config.table_storage_endpoint,
-        credential=DefaultAzureCredential(),
+        credential=credential,
         table_name="modelruns",
     )
 
@@ -44,7 +45,7 @@ def get_current_model_runs(
 
     incomplete_runs = {
         i["container_group_name"]: (i["dataset"], i["model_run_id"])
-        for i in _get_incomplete_model_runs_from_ats()
+        for i in _get_incomplete_model_runs_from_ats(credential, config)
         if "container_group_name" in i and i["container_group_name"] is not None
     }
 

@@ -10,14 +10,6 @@ from nhp.aci.status.list_current_model_runs import (
 
 def test_get_incomplete_model_runs_from_ats(mocker, config):
     # arrange
-    m_config = mocker.patch(
-        "nhp.aci.status.list_current_model_runs.Config.create_from_envvars",
-        return_value=config,
-    )
-    m_cred = mocker.patch(
-        "nhp.aci.status.list_current_model_runs.DefaultAzureCredential",
-        return_value="cred",
-    )
     m_table_client = mocker.patch("nhp.aci.status.list_current_model_runs.TableClient")
 
     entities = [{"container_group_name": "a", "dataset": "d1", "model_run_id": "m1"}]
@@ -25,12 +17,10 @@ def test_get_incomplete_model_runs_from_ats(mocker, config):
     table_client_instance.query_entities.return_value = entities
 
     # act
-    actual = _get_incomplete_model_runs_from_ats()
+    actual = _get_incomplete_model_runs_from_ats("cred", config)  # ty: ignore[invalid-argument-type]
 
     # assert
     assert actual == entities
-    m_config.assert_called_once_with()
-    m_cred.assert_called_once_with()
     m_table_client.assert_called_once_with(
         endpoint="https://storage_account.table.core.windows.net",
         credential="cred",
@@ -79,7 +69,7 @@ def test_get_current_model_runs(mocker, config):
         "b": {"dataset": None, "model_run_id": None, "aci_status": "state-b"},
     }
 
-    m_incomplete.assert_called_once_with()
+    m_incomplete.assert_called_once_with("cred", config)
     m_cimc.assert_called_once_with("cred", "subscription_id")
     m_lbyg.assert_called_once_with("resource_group")
     assert m_gcgis.call_args_list == [
@@ -125,7 +115,7 @@ def test_get_current_model_runs_creates_credential_and_config_if_none(mocker, co
         "a": {"dataset": "d1", "model_run_id": "m1", "aci_status": "state"},
     }
 
-    m_incomplete.assert_called_once_with()
+    m_incomplete.assert_called_once_with("cred", config)
     m_cimc.assert_called_once_with("cred", "subscription_id")
     m_lbyg.assert_called_once_with("resource_group")
     m_gcgis.assert_called_once_with("a", m_cimc(), "resource_group", config)
