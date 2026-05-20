@@ -249,16 +249,20 @@ class TestStatus:
         "complete, expected",
         [
             (
-                {"aae": 1, "outpatients": 100, "inpatients": 100},
+                {"AaE": 1, "Outpatients": 100, "Inpatients": 100},
                 "aae: 1",
             ),
             (
-                {"aae": 0, "outpatients": 2, "inpatients": 100},
+                {"AaE": 0, "Outpatients": 2, "Inpatients": 100},
                 "op: 2",
             ),
             (
-                {"aae": 0, "outpatients": 0, "inpatients": 3},
+                {"AaE": 0, "Outpatients": 0, "Inpatients": 3},
                 "ip: 3",
+            ),
+            (
+                {"AaE": 100, "Outpatients": 100, "Inpatients": 100},
+                "Combining results",
             ),
         ],
     )

@@ -109,13 +109,15 @@ def _status_single_model_run(dataset: str, model_run_id: str) -> None:
 
     complete = status["complete"]
     model_runs = status["model_runs"]
-    if complete["outpatients"] >= model_runs:
-        complete_str = f"aae: {complete['aae']}"
-    elif complete["inpatients"] >= model_runs:
-        complete_str = f"op: {complete['outpatients']}"
-    else:
-        complete_str = f"ip: {complete['inpatients']}"
 
+    if complete["Inpatients"] < model_runs:
+        complete_str = f"ip: {complete['Inpatients']}"
+    elif complete["Outpatients"] < model_runs:
+        complete_str = f"op: {complete['Outpatients']}"
+    elif complete["AaE"] < model_runs:
+        complete_str = f"aae: {complete['AaE']}"
+    else:
+        complete_str = "Combining results"
     print(f"{model_run_id}: {state} [{complete_str}/{model_runs}]")
 
 
