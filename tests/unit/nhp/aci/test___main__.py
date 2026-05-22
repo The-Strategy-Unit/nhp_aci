@@ -249,16 +249,20 @@ class TestStatus:
         "complete, expected",
         [
             (
-                {"aae": 1, "outpatients": 100, "inpatients": 100},
+                {"AaE": 1, "Outpatients": 100, "Inpatients": 100},
                 "aae: 1",
             ),
             (
-                {"aae": 0, "outpatients": 2, "inpatients": 100},
+                {"AaE": 0, "Outpatients": 2, "Inpatients": 100},
                 "op: 2",
             ),
             (
-                {"aae": 0, "outpatients": 0, "inpatients": 3},
+                {"AaE": 0, "Outpatients": 0, "Inpatients": 3},
                 "ip: 3",
+            ),
+            (
+                {"AaE": 100, "Outpatients": 100, "Inpatients": 100},
+                "Combining results",
             ),
         ],
     )
@@ -343,7 +347,19 @@ class TestStatus:
         # arrange
         m_cmr = mocker.patch(
             "nhp.aci.__main__.get_current_model_runs",
-            return_value={"a": {"state": "running"}, "b": {"state": "terminated"}, "c": {}},
+            return_value={
+                "a": {
+                    "dataset": "d1",
+                    "model_run_id": "id1",
+                    "aci_status": {"state": "running", "detail_status": "creating"},
+                },
+                "b": {
+                    "dataset": None,
+                    "model_run_id": None,
+                    "aci_status": {"state": "terminated"},
+                },
+                "c": {},
+            },
         )
         args = Mock()
         args.model_id = None
@@ -356,8 +372,17 @@ class TestStatus:
 
         # assert
         m_cmr.assert_called_once()
-        assert m_print.call_count == 4
-        assert print_output == ["Current Model Runs:", "a: running", "b: terminated", "c: unknown"]
+        assert m_print.call_count == 8
+        assert print_output == [
+            "Current Model Runs",
+            "------------------",
+            "",
+            "ds  | model_run_id                         | container_group_name                                            | aci_status",  # noqa: E501
+            "--- | ------------------------------------ | --------------------------------------------------------------- | ------------------",  # noqa: E501
+            "d1 | id1 | a                                                               | running [creating]",  # noqa: E501
+            "    |                                      | b                                                               | terminated [unknown]",  # noqa: E501
+            "c: No status information available",
+        ]
 
 
 class TestMain:
