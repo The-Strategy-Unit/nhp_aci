@@ -2,6 +2,7 @@
 
 from azure.core.credentials import TokenCredential
 from azure.core.exceptions import ResourceNotFoundError
+from azure.data.tables import TableClient
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.containerinstance import ContainerInstanceManagementClient
 from azure.storage.blob import BlobServiceClient
@@ -52,6 +53,34 @@ def _delete_container_group(model_run_id: str, credential: TokenCredential, conf
         print(f"{model_run_id} does not exist, potentially already removed")
 
 
+def _delete_record_in_ats(
+    dataset: str, model_run_id: str, credential: TokenCredential, config: Config
+) -> None:
+    """Deletes record from Azure Table Storage.
+
+    Args:
+        dataset (str): The dataset of the model run to delete.
+        model_run_id (str): The id of the model run to delete.
+        credential (TokenCredential, optional): Credential for authenticating with Azure,
+        defaults to None, and calls DefaultAzureCredential()
+        config (Config, optional): Configuration object, defaults to  None, and calls
+        Config.create_from_envvars()
+    """
+    table_client = TableClient(
+        endpoint=config.table_storage_endpoint,
+        credential=credential,
+        table_name="modelruns",
+    )
+    try:
+        table_client.delete_entity(partition_key=dataset, row_key=model_run_id)
+        print(
+            f"Successfully deleted entity from Azure Table Storage: PartitionKey='{dataset}' and \
+RowKey='{model_run_id}'"
+        )
+    except ResourceNotFoundError:
+        print(f"Entity with PartitionKey='{dataset}' and RowKey='{model_run_id}' not found.")
+
+
 def clean_up_model_run(
     dataset: str,
     model_run_id: str,
@@ -89,3 +118,4 @@ def clean_up_model_run(
 
     _delete_blob_in_queue(container_group_name, credential, config)
     _delete_container_group(container_group_name, credential, config)
+    _delete_record_in_ats(dataset, model_run_id, credential, config)
