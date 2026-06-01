@@ -168,6 +168,7 @@ def test_clean_up_model_run_creates_credential_and_config_if_none(mocker):
     )
     m1 = mocker.patch("nhp.aci.clean_up._delete_blob_in_queue")
     m2 = mocker.patch("nhp.aci.clean_up._delete_container_group")
+    m3 = mocker.patch("nhp.aci.clean_up._delete_record_in_ats")
 
     # act
     clean_up_model_run("dataset", "model_run_id")
@@ -176,6 +177,7 @@ def test_clean_up_model_run_creates_credential_and_config_if_none(mocker):
     m0.assert_called_once_with("dataset", "model_run_id", "cred", "config")
     m1.assert_called_once_with("id", "cred", "config")
     m2.assert_called_once_with("id", "cred", "config")
+    m3.assert_called_once_with("dataset", "model_run_id", "cred", "config")
 
     m_cred.assert_called_once_with()
     m_config.assert_called_once_with()
@@ -188,6 +190,7 @@ def test_clean_up_model_run_no_model_run_found(mocker):
     m0 = mocker.patch("nhp.aci.clean_up.get_model_run_status", return_value=None)
     m1 = mocker.patch("nhp.aci.clean_up._delete_blob_in_queue")
     m2 = mocker.patch("nhp.aci.clean_up._delete_container_group")
+    m3 = mocker.patch("nhp.aci.clean_up._delete_record_in_ats")
     print_mock = mocker.patch("builtins.print")
 
     # act
@@ -197,6 +200,7 @@ def test_clean_up_model_run_no_model_run_found(mocker):
     m0.assert_called_once_with("dataset", "model_run_id", "cred", "config")
     m1.assert_not_called()
     m2.assert_not_called()
+    m3.assert_not_called()
 
     m_cred.assert_called_once_with()
     m_config.assert_called_once_with()
@@ -213,6 +217,8 @@ def test_clean_up_model_run_found_but_no_container_group(mocker):
     m0 = mocker.patch("nhp.aci.clean_up.get_model_run_status", return_value={"status": "status"})
     m1 = mocker.patch("nhp.aci.clean_up._delete_blob_in_queue")
     m2 = mocker.patch("nhp.aci.clean_up._delete_container_group")
+    m3 = mocker.patch("nhp.aci.clean_up._delete_record_in_ats")
+
     print_mock = mocker.patch("builtins.print")
 
     # act
@@ -222,6 +228,7 @@ def test_clean_up_model_run_found_but_no_container_group(mocker):
     m0.assert_called_once_with("dataset", "model_run_id", "cred", "config")
     m1.assert_not_called()
     m2.assert_not_called()
+    m3.assert_not_called()
 
     m_cred.assert_called_once_with()
     m_config.assert_called_once_with()
