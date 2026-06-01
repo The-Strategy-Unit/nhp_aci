@@ -2,7 +2,12 @@ from unittest.mock import Mock
 
 from azure.core.exceptions import ResourceNotFoundError
 
-from nhp.aci.clean_up import _delete_blob_in_queue, _delete_container_group, clean_up_model_run
+from nhp.aci.clean_up import (
+    _delete_blob_in_queue,
+    _delete_container_group,
+    _delete_record_in_ats,
+    clean_up_model_run,
+)
 
 
 def test_delete_blob_in_queue(mocker):
@@ -85,6 +90,51 @@ def test_delete_container_group_not_found(mocker):
     print_mock.assert_called_once_with("id does not exist, potentially already removed")
 
 
+def test_delete_record_in_ats(mocker):
+    # arrange
+    m = mocker.patch("nhp.aci.clean_up.TableClient")
+
+    print_mock = mocker.patch("builtins.print")
+
+    config = Mock()
+    config.table_storage_endpoint = "ep"
+
+    # act
+    _delete_record_in_ats("dataset", "id", "credential", config)  # ty: ignore[invalid-argument-type]
+
+    # assert
+    m.assert_called_once_with(endpoint="ep", credential="credential", table_name="modelruns")
+    m().delete_entity.assert_called_once_with(partition_key="dataset", row_key="id")
+    print_mock.assert_called_once_with(
+        "Successfully deleted entity from Azure Table Storage: PartitionKey='dataset' and \
+RowKey='id'"
+    )
+
+
+def test_delete_record_in_ats_not_found(mocker):
+    # arrange
+    m = mocker.patch("nhp.aci.clean_up.TableClient")
+    m.return_value.delete_entity.side_effect = ResourceNotFoundError()
+
+    print_mock = mocker.patch("builtins.print")
+
+    config = Mock()
+    config.table_storage_endpoint = "ep"
+
+    # act
+    _delete_record_in_ats("dataset", "id", "credential", config)  # ty: ignore[invalid-argument-type]
+
+    # assert
+    m.assert_called_once_with(endpoint="ep", credential="credential", table_name="modelruns")
+    m.return_value.delete_entity.assert_called_once_with(
+        partition_key="dataset",
+        row_key="id",
+    )
+    print_mock.assert_called_once_with(
+        "Entity with PartitionKey='dataset' and RowKey='id' not found."
+    )
+
+
 def test_clean_up_model_run(mocker):
     # arrange
     m_cred = mocker.patch("nhp.aci.clean_up.DefaultAzureCredential", return_value="cred")
@@ -94,6 +144,7 @@ def test_clean_up_model_run(mocker):
     )
     m1 = mocker.patch("nhp.aci.clean_up._delete_blob_in_queue")
     m2 = mocker.patch("nhp.aci.clean_up._delete_container_group")
+    m3 = mocker.patch("nhp.aci.clean_up._delete_record_in_ats")
 
     # act
     clean_up_model_run("dataset", "model_run_id", "cred", "config")  # ty: ignore[invalid-argument-type]
@@ -102,6 +153,7 @@ def test_clean_up_model_run(mocker):
     m0.assert_called_once_with("dataset", "model_run_id", "cred", "config")
     m1.assert_called_once_with("id", "cred", "config")
     m2.assert_called_once_with("id", "cred", "config")
+    m3.assert_called_once_with("dataset", "model_run_id", "cred", "config")
 
     m_cred.assert_not_called()
     m_config.assert_not_called()
@@ -116,6 +168,7 @@ def test_clean_up_model_run_creates_credential_and_config_if_none(mocker):
     )
     m1 = mocker.patch("nhp.aci.clean_up._delete_blob_in_queue")
     m2 = mocker.patch("nhp.aci.clean_up._delete_container_group")
+    m3 = mocker.patch("nhp.aci.clean_up._delete_record_in_ats")
 
     # act
     clean_up_model_run("dataset", "model_run_id")
@@ -124,6 +177,7 @@ def test_clean_up_model_run_creates_credential_and_config_if_none(mocker):
     m0.assert_called_once_with("dataset", "model_run_id", "cred", "config")
     m1.assert_called_once_with("id", "cred", "config")
     m2.assert_called_once_with("id", "cred", "config")
+    m3.assert_called_once_with("dataset", "model_run_id", "cred", "config")
 
     m_cred.assert_called_once_with()
     m_config.assert_called_once_with()
@@ -136,6 +190,7 @@ def test_clean_up_model_run_no_model_run_found(mocker):
     m0 = mocker.patch("nhp.aci.clean_up.get_model_run_status", return_value=None)
     m1 = mocker.patch("nhp.aci.clean_up._delete_blob_in_queue")
     m2 = mocker.patch("nhp.aci.clean_up._delete_container_group")
+    m3 = mocker.patch("nhp.aci.clean_up._delete_record_in_ats")
     print_mock = mocker.patch("builtins.print")
 
     # act
@@ -145,6 +200,7 @@ def test_clean_up_model_run_no_model_run_found(mocker):
     m0.assert_called_once_with("dataset", "model_run_id", "cred", "config")
     m1.assert_not_called()
     m2.assert_not_called()
+    m3.assert_not_called()
 
     m_cred.assert_called_once_with()
     m_config.assert_called_once_with()
@@ -161,6 +217,8 @@ def test_clean_up_model_run_found_but_no_container_group(mocker):
     m0 = mocker.patch("nhp.aci.clean_up.get_model_run_status", return_value={"status": "status"})
     m1 = mocker.patch("nhp.aci.clean_up._delete_blob_in_queue")
     m2 = mocker.patch("nhp.aci.clean_up._delete_container_group")
+    m3 = mocker.patch("nhp.aci.clean_up._delete_record_in_ats")
+
     print_mock = mocker.patch("builtins.print")
 
     # act
@@ -170,6 +228,7 @@ def test_clean_up_model_run_found_but_no_container_group(mocker):
     m0.assert_called_once_with("dataset", "model_run_id", "cred", "config")
     m1.assert_not_called()
     m2.assert_not_called()
+    m3.assert_not_called()
 
     m_cred.assert_called_once_with()
     m_config.assert_called_once_with()
