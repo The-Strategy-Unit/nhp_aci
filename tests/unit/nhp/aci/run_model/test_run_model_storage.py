@@ -99,7 +99,7 @@ def test_add_table_storage_entry(mocker, config):
         credential="credential",
     )
 
-    metadata["create_datetime"] = datetime(2026, 5, 18, 12, 0, tzinfo=timezone.utc)  # ty: ignore[invalid-assignment]
+    metadata["create_datetime"] = datetime(2026, 5, 18, 12, 0, tzinfo=timezone.utc)
     m_table_client().create_entity.assert_called_once_with(
         {
             "PartitionKey": "dataset",
