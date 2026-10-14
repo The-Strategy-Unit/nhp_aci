@@ -3,12 +3,12 @@
 from unittest.mock import Mock, call
 
 from nhp.aci.status.list_current_model_runs import (
-    _get_incomplete_model_runs_from_ats,
+    _get_dataset_and_model_run_id_from_container_name,
     get_current_model_runs,
 )
 
 
-def test_get_incomplete_model_runs_from_ats(mocker, config):
+def test__get_dataset_and_model_run_id_from_container_name(mocker, config):
     # arrange
     m_table_client = mocker.patch("nhp.aci.status.list_current_model_runs.TableClient")
 
@@ -17,16 +17,59 @@ def test_get_incomplete_model_runs_from_ats(mocker, config):
     table_client_instance.query_entities.return_value = entities
 
     # act
-    actual = _get_incomplete_model_runs_from_ats("cred", config)  # ty: ignore[invalid-argument-type]
+    actual = _get_dataset_and_model_run_id_from_container_name("cred", config, "a")  # ty: ignore[invalid-argument-type]
 
     # assert
-    assert actual == entities
+    assert actual == entities[0]
     m_table_client.assert_called_once_with(
         endpoint="https://storage_account.table.core.windows.net",
         credential="cred",
         table_name="modelruns",
     )
-    table_client_instance.query_entities.assert_called_once_with("status ne 'complete'")
+    table_client_instance.query_entities.assert_called_once_with("container_group_name eq 'a'")
+
+
+def test__get_dataset_and_model_run_id_from_container_name_escapes_quotes(mocker, config):
+    # arrange
+    m_table_client = mocker.patch("nhp.aci.status.list_current_model_runs.TableClient")
+
+    table_client_instance = m_table_client.return_value
+    table_client_instance.query_entities.return_value = [{"dataset": "d1", "model_run_id": "m1"}]
+
+    # act
+    _get_dataset_and_model_run_id_from_container_name("cred", config, "a'b")  # ty: ignore[invalid-argument-type]
+
+    # assert
+    table_client_instance.query_entities.assert_called_once_with("container_group_name eq 'a''b'")
+
+
+def test__get_dataset_and_model_run_id_from_container_name_no_entity_raises(mocker, config):
+    # arrange
+    m_table_client = mocker.patch("nhp.aci.status.list_current_model_runs.TableClient")
+    m_table_client.return_value.query_entities.return_value = []
+
+    # act / assert
+    try:
+        _get_dataset_and_model_run_id_from_container_name("cred", config, "a")  # ty: ignore[invalid-argument-type]
+        raise AssertionError("Expected ValueError")
+    except ValueError as exc:
+        assert str(exc) == "No entity found for container name 'a'"
+
+
+def test__get_dataset_and_model_run_id_from_container_name_multiple_entities_raises(mocker, config):
+    # arrange
+    m_table_client = mocker.patch("nhp.aci.status.list_current_model_runs.TableClient")
+    m_table_client.return_value.query_entities.return_value = [
+        {"dataset": "d1", "model_run_id": "m1"},
+        {"dataset": "d2", "model_run_id": "m2"},
+    ]
+
+    # act / assert
+    try:
+        _get_dataset_and_model_run_id_from_container_name("cred", config, "a")  # ty: ignore[invalid-argument-type]
+        raise AssertionError("Expected ValueError")
+    except ValueError as exc:
+        assert str(exc) == "Multiple entities found for container name 'a'"
 
 
 def test_get_current_model_runs(mocker, config):
@@ -40,12 +83,11 @@ def test_get_current_model_runs(mocker, config):
         side_effect=["state-a", "state-b"],
     )
 
-    m_incomplete = mocker.patch(
-        "nhp.aci.status.list_current_model_runs._get_incomplete_model_runs_from_ats",
-        return_value=[
-            {"container_group_name": "a", "dataset": "d1", "model_run_id": "m1"},
-            {"container_group_name": None, "dataset": "ignored", "model_run_id": "ignored"},
-            {"dataset": "ignored", "model_run_id": "ignored"},
+    m_get_dataset = mocker.patch(
+        "nhp.aci.status.list_current_model_runs._get_dataset_and_model_run_id_from_container_name",
+        side_effect=[
+            {"dataset": "d1", "model_run_id": "m1"},
+            {"dataset": "d2", "model_run_id": "m2"},
         ],
     )
 
@@ -53,11 +95,9 @@ def test_get_current_model_runs(mocker, config):
     ma.name = "a"
     mb = Mock()
     mb.name = "b"
-    mn = Mock()
-    mn.name = None
 
     m_lbyg = m_cimc().container_groups.list_by_resource_group
-    m_lbyg.return_value = [ma, mb, mn]
+    m_lbyg.return_value = [ma, mb]
     m_cimc.reset_mock()
 
     # act
@@ -66,10 +106,13 @@ def test_get_current_model_runs(mocker, config):
     # assert
     assert actual == {
         "a": {"dataset": "d1", "model_run_id": "m1", "aci_status": "state-a"},
-        "b": {"dataset": None, "model_run_id": None, "aci_status": "state-b"},
+        "b": {"dataset": "d2", "model_run_id": "m2", "aci_status": "state-b"},
     }
 
-    m_incomplete.assert_called_once_with("cred", config)
+    assert m_get_dataset.call_args_list == [
+        call("cred", config, "a"),
+        call("cred", config, "b"),
+    ]
     m_cimc.assert_called_once_with("cred", "subscription_id")
     m_lbyg.assert_called_once_with("resource_group")
     assert m_gcgis.call_args_list == [
@@ -89,9 +132,9 @@ def test_get_current_model_runs_creates_credential_and_config_if_none(mocker, co
         return_value="state",
     )
 
-    m_incomplete = mocker.patch(
-        "nhp.aci.status.list_current_model_runs._get_incomplete_model_runs_from_ats",
-        return_value=[{"container_group_name": "a", "dataset": "d1", "model_run_id": "m1"}],
+    m_get_dataset = mocker.patch(
+        "nhp.aci.status.list_current_model_runs._get_dataset_and_model_run_id_from_container_name",
+        return_value={"dataset": "d1", "model_run_id": "m1"},
     )
 
     m_cred = mocker.patch(
@@ -115,7 +158,7 @@ def test_get_current_model_runs_creates_credential_and_config_if_none(mocker, co
         "a": {"dataset": "d1", "model_run_id": "m1", "aci_status": "state"},
     }
 
-    m_incomplete.assert_called_once_with("cred", config)
+    assert m_get_dataset.call_args_list == [call("cred", config, "a")]
     m_cimc.assert_called_once_with("cred", "subscription_id")
     m_lbyg.assert_called_once_with("resource_group")
     m_gcgis.assert_called_once_with("a", m_cimc(), "resource_group", config)
